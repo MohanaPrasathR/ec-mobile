@@ -1,66 +1,250 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState } from 'react';
+
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  brand: string;
+};
+
+const products: Product[] = [
+  // Apple
+  { id: '1', name: 'iPhone 15 Pro Max', price: 1199, image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=600&auto=format&fit=crop', brand: 'Apple' },
+  { id: '1b', name: 'iPhone 15', price: 799, image: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=600&auto=format&fit=crop', brand: 'Apple' },
+  { id: '1c', name: 'iPhone 14 Pro', price: 999, image: 'https://images.unsplash.com/photo-1605236453806-6ff3685e226e?q=80&w=600&auto=format&fit=crop', brand: 'Apple' },
+  
+  // Samsung
+  { id: '2', name: 'Samsung Galaxy S24 Ultra', price: 1299, image: 'https://images.unsplash.com/photo-1707050361993-e4ff3f3feab6?q=80&w=600&auto=format&fit=crop', brand: 'Samsung' },
+  { id: '2b', name: 'Samsung Galaxy Z Fold 5', price: 1799, image: 'https://images.unsplash.com/photo-1585060544812-6b45742d762f?q=80&w=600&auto=format&fit=crop', brand: 'Samsung' },
+  { id: '2c', name: 'Samsung Galaxy S23', price: 699, image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?q=80&w=600&auto=format&fit=crop', brand: 'Samsung' },
+  
+  // Google
+  { id: '3', name: 'Google Pixel 8 Pro', price: 999, image: 'https://images.unsplash.com/photo-1698242491565-d017da1ed543?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
+  { id: '3b', name: 'Google Pixel 7a', price: 499, image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
+  
+  // OnePlus
+  { id: '4', name: 'OnePlus 12', price: 799, image: 'https://images.unsplash.com/photo-1705608226487-73602fcb0200?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
+  { id: '4b', name: 'OnePlus 11', price: 599, image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
+  
+  // Xiaomi
+  { id: '5', name: 'Xiaomi 14 Pro', price: 899, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop', brand: 'Xiaomi' },
+];
 
 export default function Home() {
+  const [cart, setCart] = useState<{product: Product, quantity: number}[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState('All');
+
+  const brands = ['All', ...Array.from(new Set(products.map(p => p.brand)))];
+  const filteredProducts = selectedBrand === 'All' ? products : products.filter(p => p.brand === selectedBrand);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    cardNumber: '',
+    expiry: '',
+    cvc: ''
+  });
+
+  const addToCart = (product: Product) => {
+    setCart((prev) => {
+      const existing = prev.find(item => item.product.id === product.id);
+      if (existing) {
+        return prev.map(item => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(prev => prev.filter(item => item.product.id !== id));
+  };
+
+  const total = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total, ...formData })
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setIsCheckoutOpen(false);
+        setCart([]);
+        setShowSuccess(true);
+      } else {
+        alert('Payment failed. Please try again.');
+      }
+    } catch (err) {
+      alert('An error occurred during checkout.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+    <>
+      <header>
+        <div className="brand">TechMobile FSD</div>
+        <button className="cart-button" onClick={() => setIsCartOpen(true)}>
+          Cart ({cart.reduce((acc, item) => acc + item.quantity, 0)})
+        </button>
+      </header>
+
+      <main>
+        <section className="hero">
+          <h1>Experience the Future.</h1>
+          <p>Get the latest flagship devices delivered straight to your door.</p>
+        </section>
+
+        <section className="brand-filters" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '2rem 0', flexWrap: 'wrap', padding: '0 2rem' }}>
+          {brands.map(brand => (
+            <button 
+              key={brand} 
+              onClick={() => setSelectedBrand(brand)}
+              style={{
+                background: selectedBrand === brand ? '#0070f3' : 'transparent',
+                color: selectedBrand === brand ? '#fff' : '#c9d1d9',
+                border: '1px solid #30363d',
+                padding: '0.5rem 1.5rem',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontWeight: selectedBrand === brand ? 'bold' : 'normal'
+              }}
+              onMouseOver={(e) => { if(selectedBrand !== brand) e.currentTarget.style.borderColor = '#0070f3'; }}
+              onMouseOut={(e) => { if(selectedBrand !== brand) e.currentTarget.style.borderColor = '#30363d'; }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              {brand}
+            </button>
+          ))}
+        </section>
+
+        <section className="products-grid">
+          {filteredProducts.map(product => (
+            <div key={product.id} className="product-card">
+              <img src={product.image} alt={product.name} className="product-image" />
+              <div className="product-info">
+                <h3>{product.name}</h3>
+                <div className="price">${product.price}</div>
+              </div>
+              <button className="add-to-cart" onClick={() => addToCart(product)}>
+                Add to Cart
+              </button>
+            </div>
+          ))}
+        </section>
       </main>
-    </div>
+
+      {/* Cart Modal */}
+      {isCartOpen && (
+        <div className="modal-overlay" onClick={() => setIsCartOpen(false)}>
+          <div className="cart-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setIsCartOpen(false)}>&times;</button>
+            <h2>Your Cart</h2>
+            
+            {cart.length === 0 ? (
+              <p style={{ marginTop: '1rem' }}>Your cart is empty.</p>
+            ) : (
+              <>
+                <div style={{ marginTop: '1rem' }}>
+                  {cart.map(item => (
+                    <div key={item.product.id} className="cart-item">
+                      <div>
+                        <h4>{item.product.name}</h4>
+                        <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>Qty: {item.quantity} x ${item.product.price}</p>
+                      </div>
+                      <button 
+                        style={{ background: 'transparent', border: '1px solid #ff4444', color: '#ff4444', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer' }}
+                        onClick={() => removeFromCart(item.product.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="cart-total">
+                  <span>Total:</span>
+                  <span>${total}</span>
+                </div>
+                <button className="checkout-btn" onClick={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}>
+                  Proceed to Checkout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {isCheckoutOpen && (
+        <div className="modal-overlay" onClick={() => !loading && setIsCheckoutOpen(false)}>
+          <div className="checkout-modal" onClick={e => e.stopPropagation()}>
+            {!loading && <button className="close-btn" onClick={() => setIsCheckoutOpen(false)}>&times;</button>}
+            <h2>Secure Checkout</h2>
+            <p style={{ color: '#8b949e', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Amount to pay: ${total}</p>
+            
+            {loading ? (
+              <div className="loader"></div>
+            ) : (
+              <form onSubmit={handleCheckout}>
+                <div className="form-group">
+                  <label>Full Name</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
+                </div>
+                <div className="form-group">
+                  <label>Email Address</label>
+                  <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                </div>
+                <div className="form-group">
+                  <label>Card Number</label>
+                  <input required type="text" value={formData.cardNumber} onChange={e => setFormData({...formData, cardNumber: e.target.value})} placeholder="0000 0000 0000 0000" maxLength={19} />
+                </div>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Expiry Date</label>
+                    <input required type="text" value={formData.expiry} onChange={e => setFormData({...formData, expiry: e.target.value})} placeholder="MM/YY" maxLength={5} />
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>CVC</label>
+                    <input required type="text" value={formData.cvc} onChange={e => setFormData({...formData, cvc: e.target.value})} placeholder="123" maxLength={4} />
+                  </div>
+                </div>
+                <button type="submit" className="checkout-btn" style={{ marginTop: '1rem' }}>
+                  Pay ${total}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccess && (
+        <div className="modal-overlay" onClick={() => setShowSuccess(false)}>
+          <div className="checkout-modal success-message" onClick={e => e.stopPropagation()}>
+            <div className="success-icon">✓</div>
+            <h2 style={{ marginBottom: '1rem' }}>Payment Successful!</h2>
+            <p style={{ color: '#8b949e', marginBottom: '2rem' }}>Thank you for your purchase. Your order is being processed.</p>
+            <button className="checkout-btn" onClick={() => setShowSuccess(false)}>
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
