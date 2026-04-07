@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ProductCard from './components/ProductCard';
 
 type Product = {
   id: string;
@@ -135,16 +136,11 @@ export default function Home() {
 
         <section className="products-grid">
           {filteredProducts.map(product => (
-            <div key={product.id} className="product-card">
-              <img src={product.image} alt={product.name} className="product-image" />
-              <div className="product-info">
-                <h3>{product.name}</h3>
-                <div className="price">${product.price}</div>
-              </div>
-              <button className="add-to-cart" onClick={() => addToCart(product)}>
-                Add to Cart
-              </button>
-            </div>
+            <ProductCard 
+              key={product.id} 
+              product={product} 
+              onAddToCart={addToCart} 
+            />
           ))}
         </section>
       </main>
