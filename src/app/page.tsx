@@ -25,10 +25,12 @@ const products: Product[] = [
   // Google
   { id: '3', name: 'Google Pixel 8 Pro', price: 999, image: 'https://images.unsplash.com/photo-1698242491565-d017da1ed543?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
   { id: '3b', name: 'Google Pixel 7a', price: 499, image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
+  { id: '3c', name: 'Google Pixel 8', price: 699, image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
   
   // OnePlus
   { id: '4', name: 'OnePlus 12', price: 799, image: 'https://images.unsplash.com/photo-1705608226487-73602fcb0200?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
   { id: '4b', name: 'OnePlus 11', price: 599, image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
+  { id: '4c', name: 'OnePlus 12R', price: 499, image: 'https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
   
   // Xiaomi
   { id: '5', name: 'Xiaomi 14 Pro', price: 899, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop', brand: 'Xiaomi' },
