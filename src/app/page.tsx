@@ -41,9 +41,14 @@ export default function Home() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const brands = ['All', ...Array.from(new Set(products.map(p => p.brand)))];
-  const filteredProducts = selectedBrand === 'All' ? products : products.filter(p => p.brand === selectedBrand);
+  const filteredProducts = products.filter(p => {
+    const matchesBrand = selectedBrand === 'All' || p.brand === selectedBrand;
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesBrand && matchesSearch;
+  });
 
   // Form State
   const [formData, setFormData] = useState({
@@ -100,6 +105,23 @@ export default function Home() {
     <>
       <header>
         <div className="brand">TechMobile FSD</div>
+        <div className="search-container" style={{ flex: 1, maxWidth: '400px', margin: '0 2rem' }}>
+          <input 
+            type="text" 
+            placeholder="Search phones..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.5rem 1rem',
+              borderRadius: '20px',
+              border: '1px solid #30363d',
+              background: 'rgba(255, 255, 255, 0.05)',
+              color: '#fff',
+              outline: 'none'
+            }}
+          />
+        </div>
         <button className="cart-button" onClick={() => setIsCartOpen(true)}>
           Cart ({cart.reduce((acc, item) => acc + item.quantity, 0)})
         </button>
