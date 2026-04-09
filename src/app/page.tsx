@@ -34,6 +34,13 @@ const products: Product[] = [
   
   // Xiaomi
   { id: '5', name: 'Xiaomi 14 Pro', price: 899, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop', brand: 'Xiaomi' },
+  
+  // Nothing
+  { id: '6', name: 'Nothing Phone (2)', price: 599, image: 'https://images.unsplash.com/photo-1689006007234-79354714da91?q=80&w=600&auto=format&fit=crop', brand: 'Nothing' },
+  { id: '6b', name: 'Nothing Phone (2a)', price: 349, image: 'https://images.unsplash.com/photo-1709425514605-654f59e66db5?q=80&w=600&auto=format&fit=crop', brand: 'Nothing' },
+  
+  // Sony
+  { id: '7', name: 'Sony Xperia 1 V', price: 1399, image: 'https://images.unsplash.com/photo-1544244015-0cd4b3ff3f8d?q=80&w=600&auto=format&fit=crop', brand: 'Sony' },
 ];
 
 export default function Home() {
