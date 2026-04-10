@@ -18,6 +18,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     <div key={product.id} className="product-card">
       <img src={product.image} alt={product.name} className="product-image" />
       <div className="product-info">
+        <span className="brand-tag">{product.brand}</span>
         <h3>{product.name}</h3>
         <div className="price">${product.price}</div>
       </div>
