@@ -174,6 +174,22 @@ export default function Home() {
             />
           ))}
         </section>
+
+        <section className="testimonials" style={{ margin: '5rem 0', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2rem', color: '#fff', marginBottom: '3rem' }}>What Our Customers Say</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+            {[
+              { name: 'Alex Johnson', text: 'The iPhone 15 Pro Max is incredible. Fast delivery and perfect condition.' },
+              { name: 'Sarah Chen', text: 'Best price for the Galaxy S24 Ultra anywhere online. Very satisfied!' },
+              { name: 'Michael Ross', text: 'Pixel 8 Pro has the best camera I have ever used. Great service from TechMobile.' }
+            ].map((t, i) => (
+              <div key={i} style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                <p style={{ fontStyle: 'italic', marginBottom: '1rem', color: '#8b949e' }}>"{t.text}"</p>
+                <p style={{ fontWeight: 'bold', color: '#fff' }}>- {t.name}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
 
       {/* Cart Modal */}
