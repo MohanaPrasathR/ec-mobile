@@ -288,6 +288,16 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <footer style={{ padding: '4rem 2rem', background: 'var(--card-bg)', borderTop: '1px solid var(--border-color)', marginTop: '5rem', textAlign: 'center' }}>
+        <p style={{ color: '#fff', fontWeight: 'bold', marginBottom: '1rem' }}>TechMobile FSD</p>
+        <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>© 2026 TechMobile FSD. All rights reserved.</p>
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
+          <a href="#" style={{ color: '#8b949e', textDecoration: 'none', fontSize: '0.9rem' }}>Privacy Policy</a>
+          <a href="#" style={{ color: '#8b949e', textDecoration: 'none', fontSize: '0.9rem' }}>Terms of Service</a>
+          <a href="#" style={{ color: '#8b949e', textDecoration: 'none', fontSize: '0.9rem' }}>Support</a>
+        </div>
+      </footer>
     </>
   );
 }
