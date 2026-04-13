@@ -1,231 +1,317 @@
 'use client';
 
-import { useState } from 'react';
-import ProductCard from './components/ProductCard';
-
-type Product = {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  brand: string;
-};
-
-const products: Product[] = [
-  // Apple
-  { id: '1', name: 'iPhone 15 Pro Max', price: 1199, image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=600&auto=format&fit=crop', brand: 'Apple' },
-  { id: '1b', name: 'iPhone 15', price: 799, image: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=600&auto=format&fit=crop', brand: 'Apple' },
-  { id: '1c', name: 'iPhone 14 Pro', price: 999, image: 'https://images.unsplash.com/photo-1605236453806-6ff3685e226e?q=80&w=600&auto=format&fit=crop', brand: 'Apple' },
-  
-  // Samsung
-  { id: '2', name: 'Samsung Galaxy S24 Ultra', price: 1299, image: 'https://images.unsplash.com/photo-1707050361993-e4ff3f3feab6?q=80&w=600&auto=format&fit=crop', brand: 'Samsung' },
-  { id: '2b', name: 'Samsung Galaxy Z Fold 5', price: 1799, image: 'https://images.unsplash.com/photo-1585060544812-6b45742d762f?q=80&w=600&auto=format&fit=crop', brand: 'Samsung' },
-  { id: '2c', name: 'Samsung Galaxy S23', price: 699, image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?q=80&w=600&auto=format&fit=crop', brand: 'Samsung' },
-  
-  // Google
-  { id: '3', name: 'Google Pixel 8 Pro', price: 999, image: 'https://images.unsplash.com/photo-1698242491565-d017da1ed543?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
-  { id: '3b', name: 'Google Pixel 7a', price: 499, image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
-  { id: '3c', name: 'Google Pixel 8', price: 699, image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=600&auto=format&fit=crop', brand: 'Google' },
-  
-  // OnePlus
-  { id: '4', name: 'OnePlus 12', price: 799, image: 'https://images.unsplash.com/photo-1705608226487-73602fcb0200?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
-  { id: '4b', name: 'OnePlus 11', price: 599, image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
-  { id: '4c', name: 'OnePlus 12R', price: 499, image: 'https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=600&auto=format&fit=crop', brand: 'OnePlus' },
-  
-  // Xiaomi
-  { id: '5', name: 'Xiaomi 14 Pro', price: 899, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop', brand: 'Xiaomi' },
-  
-  // Nothing
-  { id: '6', name: 'Nothing Phone (2)', price: 599, image: 'https://images.unsplash.com/photo-1689006007234-79354714da91?q=80&w=600&auto=format&fit=crop', brand: 'Nothing' },
-  { id: '6b', name: 'Nothing Phone (2a)', price: 349, image: 'https://images.unsplash.com/photo-1709425514605-654f59e66db5?q=80&w=600&auto=format&fit=crop', brand: 'Nothing' },
-  
-  // Sony
-  { id: '7', name: 'Sony Xperia 1 V', price: 1399, image: 'https://images.unsplash.com/photo-1544244015-0cd4b3ff3f8d?q=80&w=600&auto=format&fit=crop', brand: 'Sony' },
-];
+import { useState, useEffect, useCallback } from 'react';
+import ProductCard, { ProductType } from './components/ProductCard';
+import ProductModal from './components/ProductModal';
+import AddProductModal from './components/AddProductModal';
+import OrdersModal from './components/OrdersModal';
 
 export default function Home() {
-  const [cart, setCart] = useState<{product: Product, quantity: number}[]>([]);
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [cart, setCart] = useState<{ product: ProductType; quantity: number }[]>([]);
+  
+  // Modals & Drawers
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
+
+  // Filters & Search
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
-  const brands = ['All', ...Array.from(new Set(products.map(p => p.brand)))];
-  const filteredProducts = products.filter(p => {
-    const matchesBrand = selectedBrand === 'All' || p.brand === selectedBrand;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesBrand && matchesSearch;
-  });
-
-  // Form State
-  const [formData, setFormData] = useState({
+  // Checkout Form & Feedback
+  const [checkoutData, setCheckoutData] = useState({
     name: '',
     email: '',
+    address: '123 Tech Street, Silicon Valley',
     cardNumber: '',
     expiry: '',
     cvc: ''
   });
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  const addToCart = (product: Product) => {
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedBrand !== 'All') params.append('brand', selectedBrand);
+      if (searchQuery) params.append('q', searchQuery);
+      if (sortBy) params.append('sort', sortBy);
+
+      const res = await fetch(`/api/products?${params.toString()}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setProducts(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load products:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedBrand, searchQuery, sortBy]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const handleSeedDatabase = async () => {
+    setSeeding(true);
+    try {
+      const res = await fetch('/api/seed', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message, 'success');
+        fetchProducts();
+      } else {
+        showToast(data.error || 'Failed to seed database', 'error');
+      }
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Seeding error', 'error');
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const addToCart = (product: ProductType) => {
     setCart((prev) => {
-      const existing = prev.find(item => item.product.id === product.id);
+      const existing = prev.find((item) => item.product._id === product._id);
       if (existing) {
-        return prev.map(item => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map((item) =>
+          item.product._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+        );
       }
       return [...prev, { product, quantity: 1 }];
     });
+    showToast(`Added ${product.name} to cart`);
+  };
+
+  const updateQuantity = (id: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((item) => {
+          if (item.product._id === id) {
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean) as { product: ProductType; quantity: number }[]
+    );
   };
 
   const removeFromCart = (id: string) => {
-    setCart(prev => prev.filter(item => item.product.id !== id));
+    setCart((prev) => prev.filter((item) => item.product._id !== id));
   };
 
-  const total = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+  const cartTotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setCheckoutLoading(true);
 
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: total, ...formData })
+        body: JSON.stringify({
+          amount: cartTotal,
+          items: cart,
+          name: checkoutData.name,
+          email: checkoutData.email,
+          address: checkoutData.address
+        })
       });
-      
+
       const data = await res.json();
       if (data.success) {
-        setIsCheckoutOpen(false);
         setCart([]);
-        setShowSuccess(true);
+        setIsCheckoutOpen(false);
+        showToast(`🎉 Order Placed! MongoDB Receipt: ${data.receiptId}`, 'success');
       } else {
-        alert('Payment failed. Please try again.');
+        showToast(data.error || 'Payment failed', 'error');
       }
-    } catch (err) {
-      alert('An error occurred during checkout.');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Error processing checkout', 'error');
     } finally {
-      setLoading(false);
+      setCheckoutLoading(false);
     }
   };
 
+  const brands = ['All', 'Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Nothing', 'Sony'];
+
   return (
-    <>
-      <header>
-        <div className="brand">TechMobile FSD</div>
-        <div className="search-container" style={{ flex: 1, maxWidth: '400px', margin: '0 2rem' }}>
-          <input 
-            type="text" 
-            placeholder="Search phones..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem 1rem',
-              borderRadius: '20px',
-              border: '1px solid #30363d',
-              background: 'rgba(255, 255, 255, 0.05)',
-              color: '#fff',
-              outline: 'none'
-            }}
-          />
+    <div className="app-container">
+      {/* Toast Banner */}
+      {toastMessage && (
+        <div className={`toast-notification ${toastMessage.type}`}>
+          {toastMessage.text}
         </div>
-        <button className="cart-button" onClick={() => setIsCartOpen(true)}>
-          Cart ({cart.reduce((acc, item) => acc + item.quantity, 0)})
-        </button>
+      )}
+
+      {/* Navigation Header */}
+      <header>
+        <div className="brand-logo" onClick={() => { setSelectedBrand('All'); setSearchQuery(''); }}>
+          <span className="logo-icon">📱</span>
+          <span className="brand">MobileSale <small className="db-badge">MongoDB</small></span>
+        </div>
+
+        <div className="header-actions">
+          <button className="btn-secondary" onClick={() => setIsAddModalOpen(true)}>
+            + Add Phone
+          </button>
+          
+          <button className="btn-secondary" onClick={() => setIsOrdersModalOpen(true)}>
+            📜 Orders
+          </button>
+
+          <button className="cart-button" onClick={() => setIsCartOpen(true)}>
+            🛒 Cart ({cartItemCount})
+          </button>
+        </div>
       </header>
 
+      {/* Main Content */}
       <main>
-        <section className="hero">
-          <h1>Experience the Future.</h1>
-          <p>Get the latest flagship devices delivered straight to your door.</p>
-        </section>
+        {/* Hero Banner */}
+        <div className="hero">
+          <h1>Next-Gen Smartphones Powered by MongoDB</h1>
+          <p>Full-stack e-commerce application with dynamic MongoDB collections, search, specs inspection & order history.</p>
 
-        <section className="brand-filters" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '2rem 0', flexWrap: 'wrap', padding: '0 2rem' }}>
-          {brands.map(brand => (
-            <button 
-              key={brand} 
-              onClick={() => setSelectedBrand(brand)}
-              style={{
-                background: selectedBrand === brand ? '#0070f3' : 'transparent',
-                color: selectedBrand === brand ? '#fff' : '#c9d1d9',
-                border: '1px solid #30363d',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontWeight: selectedBrand === brand ? 'bold' : 'normal'
-              }}
-              onMouseOver={(e) => { if(selectedBrand !== brand) e.currentTarget.style.borderColor = '#0070f3'; }}
-              onMouseOut={(e) => { if(selectedBrand !== brand) e.currentTarget.style.borderColor = '#30363d'; }}
+          <div className="hero-cta">
+            <button className="btn-seed" onClick={handleSeedDatabase} disabled={seeding}>
+              {seeding ? '🌱 Seeding MongoDB...' : '⚡ Seed Sample MongoDB Products'}
+            </button>
+          </div>
+        </div>
+
+        {/* Filter & Search Toolbar */}
+        <div className="toolbar">
+          <div className="search-bar">
+            <span className="search-icon">🔍</span>
+            <input 
+              type="text" 
+              placeholder="Search by model, brand, processor, camera..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="clear-search" onClick={() => setSearchQuery('')}>×</button>
+            )}
+          </div>
+
+          <div className="sort-dropdown">
+            <label>Sort:</label>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="newest">Newest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Brand Filter Tabs */}
+        <div className="brand-tabs">
+          {brands.map((b) => (
+            <button
+              key={b}
+              className={`brand-tab ${selectedBrand === b ? 'active' : ''}`}
+              onClick={() => setSelectedBrand(b)}
             >
-              {brand}
+              {b}
             </button>
           ))}
-        </section>
+        </div>
 
-        <section className="products-grid">
-          {filteredProducts.map(product => (
-            <ProductCard 
-              key={product.id} 
-              product={product} 
-              onAddToCart={addToCart} 
-            />
-          ))}
-        </section>
-
-        <section className="testimonials" style={{ margin: '5rem 0', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2rem', color: '#fff', marginBottom: '3rem' }}>What Our Customers Say</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-            {[
-              { name: 'Alex Johnson', text: 'The iPhone 15 Pro Max is incredible. Fast delivery and perfect condition.' },
-              { name: 'Sarah Chen', text: 'Best price for the Galaxy S24 Ultra anywhere online. Very satisfied!' },
-              { name: 'Michael Ross', text: 'Pixel 8 Pro has the best camera I have ever used. Great service from TechMobile.' }
-            ].map((t, i) => (
-              <div key={i} style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                <p style={{ fontStyle: 'italic', marginBottom: '1rem', color: '#8b949e' }}>"{t.text}"</p>
-                <p style={{ fontWeight: 'bold', color: '#fff' }}>- {t.name}</p>
-              </div>
+        {/* Product Grid */}
+        {loading ? (
+          <div className="loading-grid">
+            <div className="spinner"></div>
+            <p>Querying MongoDB Database...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="empty-db-banner">
+            <h3>No Products Found in MongoDB</h3>
+            <p>Your database currently has 0 matching products.</p>
+            <button className="add-to-cart" onClick={handleSeedDatabase} disabled={seeding}>
+              {seeding ? 'Seeding Database...' : '🌱 Seed Database with Sample Phones'}
+            </button>
+          </div>
+        ) : (
+          <div className="products-grid">
+            {products.map((product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                onAddToCart={addToCart}
+                onViewDetails={setSelectedProduct}
+              />
             ))}
           </div>
-        </section>
+        )}
       </main>
 
-      {/* Cart Modal */}
+      {/* Cart Drawer */}
       {isCartOpen && (
         <div className="modal-overlay" onClick={() => setIsCartOpen(false)}>
-          <div className="cart-modal" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setIsCartOpen(false)}>&times;</button>
-            <h2>Your Cart</h2>
-            
+          <div className="cart-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-header">
+              <h3>Shopping Cart ({cartItemCount})</h3>
+              <button className="modal-close" onClick={() => setIsCartOpen(false)}>×</button>
+            </div>
+
             {cart.length === 0 ? (
-              <p style={{ marginTop: '1rem' }}>Your cart is empty.</p>
+              <div className="empty-cart">
+                <p>Your cart is empty.</p>
+              </div>
             ) : (
               <>
-                <div style={{ marginTop: '1rem' }}>
-                  {cart.map(item => (
-                    <div key={item.product.id} className="cart-item">
-                      <div>
-                        <h4>{item.product.name}</h4>
-                        <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>Qty: {item.quantity} x ${item.product.price}</p>
+                <div className="cart-items-list">
+                  {cart.map(({ product, quantity }) => (
+                    <div key={product._id} className="cart-item">
+                      <img src={product.image} alt={product.name} className="cart-thumb" />
+                      <div className="cart-item-details">
+                        <h4>{product.name}</h4>
+                        <div className="cart-item-price">${product.price}</div>
+                        <div className="qty-controls">
+                          <button onClick={() => updateQuantity(product._id, -1)}>-</button>
+                          <span>{quantity}</span>
+                          <button onClick={() => updateQuantity(product._id, 1)}>+</button>
+                        </div>
                       </div>
-                      <button 
-                        style={{ background: 'transparent', border: '1px solid #ff4444', color: '#ff4444', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer' }}
-                        onClick={() => removeFromCart(item.product.id)}
-                      >
-                        Remove
-                      </button>
+                      <button className="btn-remove" onClick={() => removeFromCart(product._id)}>🗑️</button>
                     </div>
                   ))}
                 </div>
-                <div className="cart-total">
-                  <span>Total:</span>
-                  <span>${total}</span>
+
+                <div className="cart-footer">
+                  <div className="total-row">
+                    <span>Total Amount:</span>
+                    <strong>${cartTotal.toLocaleString()}</strong>
+                  </div>
+                  <button 
+                    className="add-to-cart btn-large" 
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setIsCheckoutOpen(true);
+                    }}
+                  >
+                    Proceed to Checkout
+                  </button>
                 </div>
-                <button className="checkout-btn" onClick={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}>
-                  Proceed to Checkout
-                </button>
               </>
             )}
           </div>
@@ -234,70 +320,119 @@ export default function Home() {
 
       {/* Checkout Modal */}
       {isCheckoutOpen && (
-        <div className="modal-overlay" onClick={() => !loading && setIsCheckoutOpen(false)}>
-          <div className="checkout-modal" onClick={e => e.stopPropagation()}>
-            {!loading && <button className="close-btn" onClick={() => setIsCheckoutOpen(false)}>&times;</button>}
-            <h2>Secure Checkout</h2>
-            <p style={{ color: '#8b949e', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Amount to pay: ${total}</p>
-            
-            {loading ? (
-              <div className="loader"></div>
-            ) : (
-              <form onSubmit={handleCheckout}>
+        <div className="modal-overlay" onClick={() => setIsCheckoutOpen(false)}>
+          <div className="modal-content checkout-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setIsCheckoutOpen(false)}>×</button>
+            <h3>Complete Your Purchase</h3>
+            <p className="subtitle">Orders are saved to MongoDB upon payment simulation.</p>
+
+            <form onSubmit={handleCheckoutSubmit} className="checkout-form">
+              <div className="form-group">
+                <label>Full Name *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Mohan Prasath" 
+                  value={checkoutData.name}
+                  onChange={(e) => setCheckoutData({ ...checkoutData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Email Address *</label>
+                <input 
+                  type="email" 
+                  required 
+                  placeholder="mohan@example.com" 
+                  value={checkoutData.email}
+                  onChange={(e) => setCheckoutData({ ...checkoutData, email: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Shipping Address</label>
+                <input 
+                  type="text" 
+                  placeholder="123 Tech St, City, Country" 
+                  value={checkoutData.address}
+                  onChange={(e) => setCheckoutData({ ...checkoutData, address: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Card Number (Mock)</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="4532 •••• •••• 8892" 
+                  value={checkoutData.cardNumber}
+                  onChange={(e) => setCheckoutData({ ...checkoutData, cardNumber: e.target.value })}
+                />
+              </div>
+
+              <div className="form-row">
                 <div className="form-group">
-                  <label>Full Name</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
+                  <label>Expiry</label>
+                  <input 
+                    type="text" 
+                    placeholder="12/28" 
+                    required 
+                    value={checkoutData.expiry}
+                    onChange={(e) => setCheckoutData({ ...checkoutData, expiry: e.target.value })}
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Email Address</label>
-                  <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                  <label>CVC</label>
+                  <input 
+                    type="text" 
+                    placeholder="123" 
+                    required 
+                    value={checkoutData.cvc}
+                    onChange={(e) => setCheckoutData({ ...checkoutData, cvc: e.target.value })}
+                  />
                 </div>
-                <div className="form-group">
-                  <label>Card Number</label>
-                  <input required type="text" value={formData.cardNumber} onChange={e => setFormData({...formData, cardNumber: e.target.value})} placeholder="0000 0000 0000 0000" maxLength={19} />
-                </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>Expiry Date</label>
-                    <input required type="text" value={formData.expiry} onChange={e => setFormData({...formData, expiry: e.target.value})} placeholder="MM/YY" maxLength={5} />
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>CVC</label>
-                    <input required type="text" value={formData.cvc} onChange={e => setFormData({...formData, cvc: e.target.value})} placeholder="123" maxLength={4} />
-                  </div>
-                </div>
-                <button type="submit" className="checkout-btn" style={{ marginTop: '1rem' }}>
-                  Pay ${total}
-                </button>
-              </form>
-            )}
+              </div>
+
+              <div className="checkout-summary">
+                <span>Order Total:</span>
+                <strong>${cartTotal.toLocaleString()}</strong>
+              </div>
+
+              <button type="submit" className="add-to-cart btn-large" disabled={checkoutLoading}>
+                {checkoutLoading ? 'Saving Order to MongoDB...' : `Pay $${cartTotal.toLocaleString()}`}
+              </button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="modal-overlay" onClick={() => setShowSuccess(false)}>
-          <div className="checkout-modal success-message" onClick={e => e.stopPropagation()}>
-            <div className="success-icon">✓</div>
-            <h2 style={{ marginBottom: '1rem' }}>Payment Successful!</h2>
-            <p style={{ color: '#8b949e', marginBottom: '2rem' }}>Thank you for your purchase. Your order is being processed.</p>
-            <button className="checkout-btn" onClick={() => setShowSuccess(false)}>
-              Continue Shopping
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Product Specification Modal */}
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={addToCart}
+      />
 
-      <footer style={{ padding: '4rem 2rem', background: 'var(--card-bg)', borderTop: '1px solid var(--border-color)', marginTop: '5rem', textAlign: 'center' }}>
-        <p style={{ color: '#fff', fontWeight: 'bold', marginBottom: '1rem' }}>TechMobile FSD</p>
-        <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>© 2026 TechMobile FSD. All rights reserved.</p>
-        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
-          <a href="#" style={{ color: '#8b949e', textDecoration: 'none', fontSize: '0.9rem' }}>Privacy Policy</a>
-          <a href="#" style={{ color: '#8b949e', textDecoration: 'none', fontSize: '0.9rem' }}>Terms of Service</a>
-          <a href="#" style={{ color: '#8b949e', textDecoration: 'none', fontSize: '0.9rem' }}>Support</a>
-        </div>
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onProductAdded={(newProd) => {
+          showToast(`Successfully added ${newProd.name} to MongoDB!`);
+          fetchProducts();
+        }}
+      />
+
+      {/* Orders Modal */}
+      <OrdersModal
+        isOpen={isOrdersModalOpen}
+        onClose={() => setIsOrdersModalOpen(false)}
+      />
+
+      {/* Footer */}
+      <footer>
+        <p>© {new Date().getFullYear()} MobileSale • MongoDB Powered E-Commerce Platform</p>
       </footer>
-    </>
+    </div>
   );
 }
