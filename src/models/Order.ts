@@ -1,46 +1,63 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export interface IOrderItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-export interface IOrder extends Document {
+export interface IOrderDocument extends Document {
+  orderNumber: string;
   customerName: string;
-  email: string;
-  address?: string;
-  items: IOrderItem[];
-  totalAmount: number;
-  receiptId: string;
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered';
+  customerEmail: string;
+  shippingAddress: {
+    address: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  items: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image: string;
+  }>;
+  total: number;
+  paymentMethod: string;
+  status: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-const OrderItemSchema = new Schema({
-  productId: { type: String, required: true },
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true, default: 1 },
-  image: { type: String, required: true },
-});
-
-const OrderSchema: Schema<IOrder> = new Schema(
+const OrderSchema: Schema = new Schema(
   {
-    customerName: { type: String, required: true },
-    email: { type: String, required: true },
-    address: { type: String, default: 'Standard Shipping' },
-    items: [OrderItemSchema],
-    totalAmount: { type: Number, required: true },
-    receiptId: { type: String, required: true, unique: true },
-    status: { type: String, default: 'Processing', enum: ['Pending', 'Processing', 'Shipped', 'Delivered'] },
+    orderNumber: { type: String, required: true, unique: true, index: true },
+    customerName: { type: String, required: true, trim: true },
+    customerEmail: { type: String, required: true, trim: true, lowercase: true },
+    shippingAddress: {
+      address: { type: String, required: true },
+      city: { type: String, default: 'Default City' },
+      postalCode: { type: String, default: '000000' },
+      country: { type: String, default: 'India' }
+    },
+    items: [
+      {
+        productId: { type: String, required: true },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        quantity: { type: Number, required: true, min: 1 },
+        image: { type: String, required: true }
+      }
+    ],
+    total: { type: Number, required: true, min: 0 },
+    paymentMethod: { type: String, default: 'Credit Card (Mock)' },
+    status: {
+      type: String,
+      enum: ['pending', 'processing', 'completed', 'cancelled'],
+      default: 'completed'
+    }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-const Order: Model<IOrder> =
-  mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
+const Order: Model<IOrderDocument> =
+  mongoose.models.Order || mongoose.model<IOrderDocument>('Order', OrderSchema);
 
 export default Order;
