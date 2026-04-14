@@ -1,46 +1,67 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export interface IProduct extends Document {
+export interface IProductDocument extends Document {
   name: string;
   brand: string;
   price: number;
-  image: string;
-  description: string;
+  originalPrice?: number;
   category: string;
-  specs: {
-    ram?: string;
-    storage?: string;
-    battery?: string;
-    camera?: string;
-    display?: string;
-  };
+  image: string;
+  images: string[];
+  description: string;
   rating: number;
+  reviewCount: number;
   stock: number;
+  isFeatured: boolean;
+  isNewArrival: boolean;
+  specs: {
+    display: string;
+    processor: string;
+    ram: string;
+    storage: string;
+    battery: string;
+    camera: string;
+    os: string;
+    network?: string;
+  };
+  tags: string[];
   createdAt: Date;
+  updatedAt: Date;
 }
 
-const ProductSchema: Schema<IProduct> = new Schema(
+const ProductSchema: Schema = new Schema(
   {
-    name: { type: String, required: true },
-    brand: { type: String, required: true },
-    price: { type: Number, required: true },
+    name: { type: String, required: true, trim: true, index: true },
+    brand: { type: String, required: true, trim: true, index: true },
+    price: { type: Number, required: true, min: 0 },
+    originalPrice: { type: Number, min: 0 },
+    category: { type: String, required: true, default: 'Smartphones', index: true },
     image: { type: String, required: true },
-    description: { type: String, default: '' },
-    category: { type: String, default: 'Smartphones' },
+    images: { type: [String], default: [] },
+    description: { type: String, required: true },
+    rating: { type: Number, default: 4.5, min: 0, max: 5 },
+    reviewCount: { type: Number, default: 0, min: 0 },
+    stock: { type: Number, required: true, default: 20, min: 0 },
+    isFeatured: { type: Boolean, default: false },
+    isNewArrival: { type: Boolean, default: false },
     specs: {
-      ram: { type: String, default: '8GB' },
-      storage: { type: String, default: '128GB' },
-      battery: { type: String, default: '4500 mAh' },
-      camera: { type: String, default: '50 MP' },
-      display: { type: String, default: '6.5" OLED' },
+      display: { type: String, required: true },
+      processor: { type: String, required: true },
+      ram: { type: String, required: true },
+      storage: { type: String, required: true },
+      battery: { type: String, required: true },
+      camera: { type: String, required: true },
+      os: { type: String, required: true },
+      network: { type: String, default: '5G' }
     },
-    rating: { type: Number, default: 4.5 },
-    stock: { type: Number, default: 10 },
+    tags: { type: [String], default: [] }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-const Product: Model<IProduct> =
-  mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);
+const Product: Model<IProductDocument> =
+  mongoose.models.Product || mongoose.model<IProductDocument>('Product', ProductSchema);
 
 export default Product;
