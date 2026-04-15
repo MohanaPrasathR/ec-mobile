@@ -1,0 +1,180 @@
+[
+  {
+    "name": "Apple iPhone 16 Pro Max",
+    "brand": "Apple",
+    "price": 1199,
+    "originalPrice": 1299,
+    "category": "Smartphones",
+    "image": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&q=80&w=800",
+    "description": "Titanium design with A18 Pro chip, 48MP Fusion camera system, and industry-leading battery life.",
+    "rating": 4.9,
+    "reviewCount": 128,
+    "stock": 15,
+    "isFeatured": true,
+    "isNewArrival": true,
+    "specs": {
+      "display": "6.9-inch Super Retina XDR OLED, 120Hz ProMotion",
+      "processor": "Apple A18 Pro (3nm)",
+      "ram": "8GB Unified Memory",
+      "storage": "256GB / 512GB / 1TB",
+      "battery": "4685 mAh, 25W MagSafe wireless",
+      "camera": "48MP Main + 48MP Ultra-wide + 12MP 5x Telephoto",
+      "os": "iOS 18",
+      "network": "5G Sub-6 & mmWave"
+    },
+    "tags": [
+      "flagship",
+      "apple",
+      "ios",
+      "camera-beast"
+    ]
+  },
+  {
+    "name": "Samsung Galaxy S24 Ultra",
+    "brand": "Samsung",
+    "price": 1299,
+    "originalPrice": 1419,
+    "category": "Smartphones",
+    "image": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&q=80&w=800",
+    "description": "Galaxy AI powered flagship with built-in S-Pen, 200MP camera, Snapdragon 8 Gen 3, and titanium frame.",
+    "rating": 4.8,
+    "reviewCount": 94,
+    "stock": 20,
+    "isFeatured": true,
+    "isNewArrival": false,
+    "specs": {
+      "display": "6.8-inch Dynamic AMOLED 2X, 120Hz, 2600 nits",
+      "processor": "Snapdragon 8 Gen 3 for Galaxy",
+      "ram": "12GB LPDDR5X",
+      "storage": "256GB / 512GB / 1TB",
+      "battery": "5000 mAh, 45W Fast Charging",
+      "camera": "200MP Wide + 50MP 5x Periscope + 10MP 3x Telephoto + 12MP Ultra-wide",
+      "os": "Android 14 (One UI 6.1)",
+      "network": "5G"
+    },
+    "tags": [
+      "galaxy",
+      "ai",
+      "s-pen",
+      "android"
+    ]
+  },
+  {
+    "name": "Google Pixel 9 Pro XL",
+    "brand": "Google",
+    "price": 1099,
+    "originalPrice": 1199,
+    "category": "Smartphones",
+    "image": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&q=80&w=800",
+    "description": "Google Tensor G4 chip with Gemini Advanced built-in, Super Actua display, and pro camera controls.",
+    "rating": 4.7,
+    "reviewCount": 76,
+    "stock": 18,
+    "isFeatured": true,
+    "isNewArrival": true,
+    "specs": {
+      "display": "6.8-inch Super Actua LTPO OLED, 1-120Hz",
+      "processor": "Google Tensor G4 (4nm) + Titan M2",
+      "ram": "16GB LPDDR5X",
+      "storage": "128GB / 256GB / 512GB",
+      "battery": "5060 mAh, 37W Fast Charging",
+      "camera": "50MP Main + 48MP Ultra-wide + 48MP 5x Telephoto",
+      "os": "Android 15 (Pixel UI)",
+      "network": "5G"
+    },
+    "tags": [
+      "pixel",
+      "google",
+      "ai",
+      "clean-android"
+    ]
+  },
+  {
+    "name": "OnePlus 12",
+    "brand": "OnePlus",
+    "price": 799,
+    "originalPrice": 899,
+    "category": "Smartphones",
+    "image": "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?auto=format&fit=crop&q=80&w=800",
+    "description": "Smooth Beyond Belief with 4th Gen Hasselblad Camera, Snapdragon 8 Gen 3, and 100W SUPERVOOC charging.",
+    "rating": 4.7,
+    "reviewCount": 85,
+    "stock": 25,
+    "isFeatured": false,
+    "isNewArrival": false,
+    "specs": {
+      "display": "6.82-inch 2K ProXDR Display, 120Hz LTPO",
+      "processor": "Snapdragon 8 Gen 3",
+      "ram": "16GB LPDDR5X",
+      "storage": "512GB UFS 4.0",
+      "battery": "5400 mAh, 100W SUPERVOOC",
+      "camera": "50MP Sony LYT-808 + 64MP 3x Periscope + 48MP Ultra-wide",
+      "os": "OxygenOS 14 based on Android 14",
+      "network": "5G"
+    },
+    "tags": [
+      "oneplus",
+      "fast-charging",
+      "hasselblad"
+    ]
+  },
+  {
+    "name": "Nothing Phone (2)",
+    "brand": "Nothing",
+    "price": 599,
+    "originalPrice": 699,
+    "category": "Smartphones",
+    "image": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800",
+    "description": "Iconic Glyph Interface with Nothing OS 2.5, dual 50MP Sony cameras, and sleek transparent back glass.",
+    "rating": 4.6,
+    "reviewCount": 62,
+    "stock": 14,
+    "isFeatured": false,
+    "isNewArrival": false,
+    "specs": {
+      "display": "6.7-inch Flexible OLED, 120Hz LTPO",
+      "processor": "Snapdragon 8+ Gen 1",
+      "ram": "12GB RAM",
+      "storage": "256GB / 512GB",
+      "battery": "4700 mAh, 45W Wired + 15W Wireless",
+      "camera": "50MP Sony IMX890 Main + 50MP Ultra-wide",
+      "os": "Nothing OS 2.5 (Android 14)",
+      "network": "5G"
+    },
+    "tags": [
+      "nothing",
+      "glyph",
+      "innovative-design"
+    ]
+  },
+  {
+    "name": "Sony Xperia 1 VI",
+    "brand": "Sony",
+    "price": 1399,
+    "originalPrice": 1499,
+    "category": "Smartphones",
+    "image": "https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&q=80&w=800",
+    "description": "Unrivalled optical zoom from 85mm to 170mm with Exmor T for mobile sensor and dedicated 3.5mm audio jack.",
+    "rating": 4.8,
+    "reviewCount": 41,
+    "stock": 8,
+    "isFeatured": true,
+    "isNewArrival": true,
+    "specs": {
+      "display": "6.5-inch 19.5:9 FHD+ OLED, 1-120Hz Powered by BRAVIA",
+      "processor": "Snapdragon 8 Gen 3",
+      "ram": "12GB RAM",
+      "storage": "256GB / 512GB (microSD up to 1.5TB)",
+      "battery": "5000 mAh, 2-day battery life",
+      "camera": "48MP Main + 12MP Continuous Optical Zoom + 12MP Ultra-wide",
+      "os": "Android 14",
+      "network": "5G"
+    },
+    "tags": [
+      "sony",
+      "audiophile",
+      "optical-zoom",
+      "professional"
+    ]
+  }
+]
