@@ -1,48 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectToDatabase from '@/lib/mongodb';
 import Product from '@/models/Product';
+import initialProducts from '@/data/initial-products.json';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
-    
     const { searchParams } = new URL(request.url);
     const brand = searchParams.get('brand');
-    const search = searchParams.get('q');
+    const search = searchParams.get('search');
     const sort = searchParams.get('sort');
 
-    const filter: Record<string, unknown> = {};
-
+    let filterQuery: any = {};
     if (brand && brand !== 'All') {
-      filter.brand = brand;
+      filterQuery.brand = { $regex: new RegExp(`^${brand}$`, 'i') };
     }
-
     if (search) {
-      filter.$or = [
+      filterQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
         { brand: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } }
+        { description: { $regex: search, $options: 'i' } }
       ];
     }
 
-    let sortOptions: Record<string, 1 | -1> = { createdAt: -1 };
-    if (sort === 'price-low') {
-      sortOptions = { price: 1 };
-    } else if (sort === 'price-high') {
-      sortOptions = { price: -1 };
-    } else if (sort === 'rating') {
-      sortOptions = { rating: -1 };
+    let query = Product.find(filterQuery);
+    if (sort === 'price-asc') query = query.sort({ price: 1 });
+    else if (sort === 'price-desc') query = query.sort({ price: -1 });
+    else if (sort === 'rating') query = query.sort({ rating: -1 });
+    else query = query.sort({ createdAt: -1 });
+
+    let products = await query.exec();
+    if (products.length === 0 && !brand && !search) {
+      try {
+        await Product.insertMany(initialProducts);
+        products = await Product.find({}).sort({ createdAt: -1 });
+      } catch (e) {}
     }
 
-    const products = await Product.find(filter).sort(sortOptions);
     return NextResponse.json({ success: true, count: products.length, data: products });
-  } catch (error: unknown) {
-    console.error('Error fetching products from MongoDB:', error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Database connection error' },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
@@ -52,36 +49,34 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     if (!body.name || !body.brand || !body.price || !body.image) {
-      return NextResponse.json(
-        { success: false, error: 'Name, brand, price, and image URL are required.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Name, Brand, Price and Image URL are required' }, { status: 400 });
     }
 
-    const newProduct = await Product.create({
+    const newProduct = new Product({
       name: body.name,
       brand: body.brand,
       price: Number(body.price),
-      image: body.image,
-      description: body.description || '',
+      originalPrice: body.originalPrice ? Number(body.originalPrice) : undefined,
       category: body.category || 'Smartphones',
+      image: body.image,
+      images: body.images || [body.image],
+      description: body.description || `${body.name} flagship mobile phone.`,
+      stock: body.stock !== undefined ? Number(body.stock) : 20,
       specs: body.specs || {
-        ram: body.ram || '8GB',
-        storage: body.storage || '128GB',
-        battery: body.battery || '4500 mAh',
-        camera: body.camera || '50 MP',
-        display: body.display || '6.5" OLED'
-      },
-      rating: body.rating ? Number(body.rating) : 4.5,
-      stock: body.stock ? Number(body.stock) : 10
+        display: '6.7-inch AMOLED 120Hz',
+        processor: 'Flagship Processor',
+        ram: '8GB',
+        storage: '256GB',
+        battery: '5000 mAh',
+        camera: '50MP Triple Camera',
+        os: 'Android 14',
+        network: '5G'
+      }
     });
 
-    return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
-  } catch (error: unknown) {
-    console.error('Error creating product in MongoDB:', error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to create product' },
-      { status: 500 }
-    );
+    const saved = await newProduct.save();
+    return NextResponse.json({ success: true, data: saved }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
