@@ -1,67 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectToDatabase from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
-    const body = await request.json();
+    const body = await req.json();
+    const { items, customerName, customerEmail, shippingAddress } = body;
 
-    const { name, email, address, items, amount } = body;
-
-    if (!name || !email || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required order details' },
-        { status: 400 }
-      );
+    if (!items || !items.length || !customerName || !customerEmail) {
+      return NextResponse.json({ error: 'Customer information and items required.' }, { status: 400 });
     }
 
-    const receiptId = `REC-MDB-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 10000)}`;
+    let calculatedTotal = 0;
+    const orderItems = [];
 
-    const formattedItems = items.map((item: { product: { _id?: string; id?: string; name: string; price: number; image: string }; quantity: number }) => ({
-      productId: item.product._id || item.product.id || 'unknown',
-      name: item.product.name,
-      price: item.product.price,
-      quantity: item.quantity,
-      image: item.product.image
-    }));
+    for (const item of items) {
+      const pId = item.productId || item._id || item.id;
+      const product = await Product.findById(pId);
+      const price = product ? product.price : (item.price || 0);
+      const qty = item.quantity || 1;
 
-    // Create Order document in MongoDB
-    const order = await Order.create({
-      customerName: name,
-      email: email,
-      address: address || 'Standard Express Delivery',
-      items: formattedItems,
-      totalAmount: amount,
-      receiptId: receiptId,
-      status: 'Processing'
-    });
+      calculatedTotal += price * qty;
+      orderItems.push({
+        productId: String(pId),
+        name: product ? product.name : (item.name || 'Mobile Phone'),
+        price,
+        quantity: qty,
+        image: product ? product.image : (item.image || '')
+      });
 
-    // Optionally update inventory stock in MongoDB
-    for (const item of formattedItems) {
-      if (item.productId && item.productId !== 'unknown') {
-        try {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { stock: -item.quantity }
-          });
-        } catch (err) {
-          console.warn('Could not update stock for product:', item.productId, err);
-        }
+      if (product && product.stock >= qty) {
+        product.stock -= qty;
+        await product.save();
       }
     }
 
+    const orderNumber = 'EC-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-' + Date.now().toString().slice(-4);
+    const newOrder = await Order.create({
+      orderNumber,
+      customerName,
+      customerEmail,
+      shippingAddress: { address: typeof shippingAddress === 'string' ? shippingAddress : 'Standard Address' },
+      items: orderItems,
+      total: calculatedTotal,
+      paymentMethod: 'Credit Card (Mock Auth)',
+      status: 'completed'
+    });
+
     return NextResponse.json({
       success: true,
-      message: 'Order placed successfully and saved to MongoDB!',
-      receiptId: order.receiptId,
-      order: order
-    });
-  } catch (error: unknown) {
-    console.error('Checkout processing error:', error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
-    );
+      message: 'Order created successfully',
+      orderNumber: newOrder.orderNumber,
+      total: calculatedTotal
+    }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
