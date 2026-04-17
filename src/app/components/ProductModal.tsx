@@ -75,3 +75,5 @@ export default function ProductModal({ product, onClose, onAddToCart }: ProductM
     </div>
   );
 }
+
+// Feature increment: build #13 for ProductModal
