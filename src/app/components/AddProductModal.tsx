@@ -201,3 +201,5 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     </div>
   );
 }
+
+// Refactored logic pass: rev 14
