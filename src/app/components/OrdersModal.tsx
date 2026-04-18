@@ -115,3 +115,5 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
     </div>
   );
 }
+
+// Edge-case safeguard audit: check 15
