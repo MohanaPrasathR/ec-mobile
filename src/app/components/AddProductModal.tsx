@@ -203,3 +203,5 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 }
 
 // Refactored logic pass: rev 14
+
+// Edge-case safeguard audit: check 50
