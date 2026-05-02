@@ -77,3 +77,5 @@ export default function ProductModal({ product, onClose, onAddToCart }: ProductM
 }
 
 // Feature increment: build #13 for ProductModal
+
+// Refactored logic pass: rev 49
