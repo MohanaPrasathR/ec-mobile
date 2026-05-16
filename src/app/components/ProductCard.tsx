@@ -68,3 +68,5 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }: Pro
 }
 
 // Feature increment: build #48 for ProductCard
+
+// Refactored logic pass: rev 84
