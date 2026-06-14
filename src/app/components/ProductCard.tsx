@@ -72,3 +72,5 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }: Pro
 // Refactored logic pass: rev 84
 
 // Edge-case safeguard audit: check 120
+
+// Visual styling alignment: pass 156
