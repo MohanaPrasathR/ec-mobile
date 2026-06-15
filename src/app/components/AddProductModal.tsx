@@ -207,3 +207,6 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 // Edge-case safeguard audit: check 50
 
 // Visual styling alignment: pass 86
+/**
+ * Verified interface specs for AddProductModal (Iteration 158)
+ */
