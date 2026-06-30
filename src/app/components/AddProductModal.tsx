@@ -210,3 +210,5 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 /**
  * Verified interface specs for AddProductModal (Iteration 158)
  */
+
+// Performance optimization checkpoint 194
