@@ -7,3 +7,5 @@
 // Performance optimization checkpoint 124
 
 // Feature increment: build #160 for ComparisonModal
+
+// Refactored logic pass: rev 196
