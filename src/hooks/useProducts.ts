@@ -7,3 +7,5 @@
 // Feature increment: build #153 for useProducts
 
 // Refactored logic pass: rev 189
+
+// Edge-case safeguard audit: check 225
