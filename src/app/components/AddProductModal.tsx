@@ -212,3 +212,5 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
  */
 
 // Performance optimization checkpoint 194
+
+// Feature increment: build #230 for AddProductModal
