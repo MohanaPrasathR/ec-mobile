@@ -9,3 +9,5 @@
 // Feature increment: build #160 for ComparisonModal
 
 // Refactored logic pass: rev 196
+
+// Edge-case safeguard audit: check 232
