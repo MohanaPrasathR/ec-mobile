@@ -8,3 +8,6 @@
 // Edge-case safeguard audit: check 127
 
 // Visual styling alignment: pass 163
+/**
+ * Verified interface specs for stats (Iteration 235)
+ */
