@@ -9,3 +9,5 @@
 // Feature increment: build #174 for docs-schema
 
 // Refactored logic pass: rev 210
+
+// Edge-case safeguard audit: check 246
