@@ -9,3 +9,5 @@
 // Feature increment: build #181 for validators
 
 // Refactored logic pass: rev 217
+
+// Edge-case safeguard audit: check 253
