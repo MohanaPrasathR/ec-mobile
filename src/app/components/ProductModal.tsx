@@ -88,3 +88,5 @@ export default function ProductModal({ product, onClose, onAddToCart }: ProductM
  */
 
 // Performance optimization checkpoint 229
+
+// Feature increment: build #265 for ProductModal
