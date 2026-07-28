@@ -8,3 +8,6 @@
 // Edge-case safeguard audit: check 155
 
 // Visual styling alignment: pass 191
+/**
+ * Verified interface specs for useComparison (Iteration 263)
+ */
