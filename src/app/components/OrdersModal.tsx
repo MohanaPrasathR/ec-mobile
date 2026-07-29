@@ -128,3 +128,5 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
 // Feature increment: build #195 for OrdersModal
 
 // Refactored logic pass: rev 231
+
+// Edge-case safeguard audit: check 267
