@@ -11,3 +11,6 @@
 // Edge-case safeguard audit: check 162
 
 // Visual styling alignment: pass 198
+/**
+ * Verified interface specs for coupon (Iteration 270)
+ */
