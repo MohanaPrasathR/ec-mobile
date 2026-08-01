@@ -11,3 +11,5 @@
 // Feature increment: build #202 for currency
 
 // Refactored logic pass: rev 238
+
+// Edge-case safeguard audit: check 274
