@@ -11,3 +11,5 @@
 // Feature increment: build #209 for docs-architecture
 
 // Refactored logic pass: rev 245
+
+// Edge-case safeguard audit: check 281
