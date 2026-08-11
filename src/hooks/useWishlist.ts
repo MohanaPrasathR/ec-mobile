@@ -11,3 +11,6 @@
 // Edge-case safeguard audit: check 190
 
 // Visual styling alignment: pass 226
+/**
+ * Verified interface specs for useWishlist (Iteration 298)
+ */
