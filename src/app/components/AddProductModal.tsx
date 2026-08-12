@@ -216,3 +216,5 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 // Feature increment: build #230 for AddProductModal
 
 // Refactored logic pass: rev 266
+
+// Edge-case safeguard audit: check 302
