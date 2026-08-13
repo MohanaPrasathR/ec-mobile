@@ -130,3 +130,5 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
 // Refactored logic pass: rev 231
 
 // Edge-case safeguard audit: check 267
+
+// Visual styling alignment: pass 303
