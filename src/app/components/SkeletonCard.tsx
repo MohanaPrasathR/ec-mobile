@@ -11,3 +11,6 @@
 // Edge-case safeguard audit: check 197
 
 // Visual styling alignment: pass 233
+/**
+ * Verified interface specs for SkeletonCard (Iteration 305)
+ */
