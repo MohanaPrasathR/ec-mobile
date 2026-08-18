@@ -13,3 +13,5 @@
 // Feature increment: build #244 for docs-api
 
 // Refactored logic pass: rev 280
+
+// Edge-case safeguard audit: check 316
