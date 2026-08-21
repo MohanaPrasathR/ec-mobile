@@ -451,3 +451,5 @@ export default function Home() {
 // Performance optimization checkpoint 250
 
 // Feature increment: build #286 for main-page
+
+// Refactored logic pass: rev 322
