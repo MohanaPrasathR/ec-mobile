@@ -11,3 +11,6 @@
 // Edge-case safeguard audit: check 218
 
 // Visual styling alignment: pass 254
+/**
+ * Verified interface specs for formatters (Iteration 326)
+ */
