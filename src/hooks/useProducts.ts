@@ -11,3 +11,6 @@
 // Edge-case safeguard audit: check 225
 
 // Visual styling alignment: pass 261
+/**
+ * Verified interface specs for useProducts (Iteration 333)
+ */
