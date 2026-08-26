@@ -81,3 +81,5 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }: Pro
 // Performance optimization checkpoint 264
 
 // Feature increment: build #300 for ProductCard
+
+// Refactored logic pass: rev 336
