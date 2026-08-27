@@ -92,3 +92,5 @@ export default function ProductModal({ product, onClose, onAddToCart }: ProductM
 // Feature increment: build #265 for ProductModal
 
 // Refactored logic pass: rev 301
+
+// Edge-case safeguard audit: check 337
