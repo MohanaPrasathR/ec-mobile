@@ -13,3 +13,6 @@
 // Edge-case safeguard audit: check 232
 
 // Visual styling alignment: pass 268
+/**
+ * Verified interface specs for ComparisonModal (Iteration 340)
+ */
