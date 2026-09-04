@@ -453,3 +453,5 @@ export default function Home() {
 // Feature increment: build #286 for main-page
 
 // Refactored logic pass: rev 322
+
+// Edge-case safeguard audit: check 358
