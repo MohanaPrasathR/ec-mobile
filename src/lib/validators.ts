@@ -13,3 +13,6 @@
 // Edge-case safeguard audit: check 253
 
 // Visual styling alignment: pass 289
+/**
+ * Verified interface specs for validators (Iteration 361)
+ */
