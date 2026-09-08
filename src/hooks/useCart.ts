@@ -13,3 +13,6 @@
 // Edge-case safeguard audit: check 260
 
 // Visual styling alignment: pass 296
+/**
+ * Verified interface specs for useCart (Iteration 368)
+ */
