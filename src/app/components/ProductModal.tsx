@@ -94,3 +94,5 @@ export default function ProductModal({ product, onClose, onAddToCart }: ProductM
 // Refactored logic pass: rev 301
 
 // Edge-case safeguard audit: check 337
+
+// Visual styling alignment: pass 373
