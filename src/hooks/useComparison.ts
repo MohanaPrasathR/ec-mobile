@@ -15,3 +15,5 @@
 // Performance optimization checkpoint 299
 
 // Feature increment: build #335 for useComparison
+
+// Refactored logic pass: rev 371
