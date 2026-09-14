@@ -15,3 +15,6 @@
 // Edge-case safeguard audit: check 274
 
 // Visual styling alignment: pass 310
+/**
+ * Verified interface specs for currency (Iteration 382)
+ */
