@@ -17,3 +17,5 @@
 // Feature increment: build #314 for tests-cart
 
 // Refactored logic pass: rev 350
+
+// Edge-case safeguard audit: check 386
