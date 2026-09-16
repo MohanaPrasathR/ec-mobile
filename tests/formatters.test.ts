@@ -17,3 +17,5 @@
 // Refactored logic pass: rev 315
 
 // Edge-case safeguard audit: check 351
+
+// Visual styling alignment: pass 387
