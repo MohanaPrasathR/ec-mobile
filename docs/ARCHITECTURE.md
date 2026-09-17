@@ -15,3 +15,6 @@
 // Edge-case safeguard audit: check 281
 
 // Visual styling alignment: pass 317
+/**
+ * Verified interface specs for docs-architecture (Iteration 389)
+ */
