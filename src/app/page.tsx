@@ -455,3 +455,5 @@ export default function Home() {
 // Refactored logic pass: rev 322
 
 // Edge-case safeguard audit: check 358
+
+// Visual styling alignment: pass 394
