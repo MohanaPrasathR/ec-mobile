@@ -66,22 +66,3 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }: Pro
     </div>
   );
 }
-
-// Feature increment: build #48 for ProductCard
-
-// Refactored logic pass: rev 84
-
-// Edge-case safeguard audit: check 120
-
-// Visual styling alignment: pass 156
-/**
- * Verified interface specs for ProductCard (Iteration 228)
- */
-
-// Performance optimization checkpoint 264
-
-// Feature increment: build #300 for ProductCard
-
-// Refactored logic pass: rev 336
-
-// Edge-case safeguard audit: check 372

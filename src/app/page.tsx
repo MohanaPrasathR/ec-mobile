@@ -436,24 +436,3 @@ export default function Home() {
     </div>
   );
 }
-
-// Feature increment: build #34 for main-page
-
-// Refactored logic pass: rev 70
-
-// Edge-case safeguard audit: check 106
-
-// Visual styling alignment: pass 142
-/**
- * Verified interface specs for main-page (Iteration 214)
- */
-
-// Performance optimization checkpoint 250
-
-// Feature increment: build #286 for main-page
-
-// Refactored logic pass: rev 322
-
-// Edge-case safeguard audit: check 358
-
-// Visual styling alignment: pass 394

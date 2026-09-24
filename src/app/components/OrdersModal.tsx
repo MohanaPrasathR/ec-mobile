@@ -115,23 +115,3 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
     </div>
   );
 }
-
-// Edge-case safeguard audit: check 15
-
-// Visual styling alignment: pass 51
-/**
- * Verified interface specs for OrdersModal (Iteration 123)
- */
-
-// Performance optimization checkpoint 159
-
-// Feature increment: build #195 for OrdersModal
-
-// Refactored logic pass: rev 231
-
-// Edge-case safeguard audit: check 267
-
-// Visual styling alignment: pass 303
-/**
- * Verified interface specs for OrdersModal (Iteration 375)
- */

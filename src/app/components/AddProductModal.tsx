@@ -201,22 +201,3 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     </div>
   );
 }
-
-// Refactored logic pass: rev 14
-
-// Edge-case safeguard audit: check 50
-
-// Visual styling alignment: pass 86
-/**
- * Verified interface specs for AddProductModal (Iteration 158)
- */
-
-// Performance optimization checkpoint 194
-
-// Feature increment: build #230 for AddProductModal
-
-// Refactored logic pass: rev 266
-
-// Edge-case safeguard audit: check 302
-
-// Visual styling alignment: pass 338
