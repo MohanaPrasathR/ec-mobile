@@ -45,11 +45,11 @@ const OrderSchema: Schema = new Schema(
       }
     ],
     total: { type: Number, required: true, min: 0 },
-    paymentMethod: { type: String, default: 'Credit Card (Mock)' },
+    paymentMethod: { type: String, default: 'Cash on delivery (demo)' },
     status: {
       type: String,
       enum: ['pending', 'processing', 'completed', 'cancelled'],
-      default: 'completed'
+      default: 'pending'
     }
   },
   {

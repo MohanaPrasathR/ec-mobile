@@ -1,36 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/mongodb';
-import Product from '@/models/Product';
 import mongoose from 'mongoose';
+import connectToDatabase from '@/lib/mongodb';
+import { adminGuard, serverError } from '@/lib/admin';
+import { productPatch, ValidationError } from '@/lib/validation';
+import Product from '@/models/Product';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+type Ctx = { params: Promise<{ id: string }> };
+const notFound = () => NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+
+export async function GET(_req: NextRequest, { params }: Ctx) {
   try {
     const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return notFound();
     await connectToDatabase();
-    let product = null;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      product = await Product.findById(id);
-    }
-    if (!product) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
-    }
-    return NextResponse.json({ success: true, data: product });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const product = await Product.findById(id).lean();
+    return product ? NextResponse.json({ success: true, data: product }) : notFound();
+  } catch (error) {
+    return serverError(error);
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: Ctx) {
+  const denied = adminGuard(request);
+  if (denied) return denied;
   try {
     const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return notFound();
+    const patch = productPatch(await request.json().catch(() => null), false);
     await connectToDatabase();
-    const body = await request.json();
-    const updated = await Product.findByIdAndUpdate(id, body, { new: true, runValidators: true });
-    if (!updated) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
-    }
-    return NextResponse.json({ success: true, data: updated });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const updated = await Product.findByIdAndUpdate(id, { $set: patch }, { new: true, runValidators: true });
+    return updated ? NextResponse.json({ success: true, data: updated }) : notFound();
+  } catch (error) {
+    if (error instanceof ValidationError) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    return serverError(error);
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: Ctx) {
+  const denied = adminGuard(request);
+  if (denied) return denied;
+  try {
+    const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return notFound();
+    await connectToDatabase();
+    const deleted = await Product.findByIdAndDelete(id);
+    return deleted ? NextResponse.json({ success: true }) : notFound();
+  } catch (error) {
+    return serverError(error);
   }
 }

@@ -1,82 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
+import { adminGuard, serverError } from '@/lib/admin';
+import { productPatch, searchTerm, ValidationError } from '@/lib/validation';
 import Product from '@/models/Product';
 import initialProducts from '@/data/initial-products.json';
+
+const SORTS: Record<string, Record<string, 1 | -1>> = {
+  'price-asc': { price: 1 },
+  'price-desc': { price: -1 },
+  rating: { rating: -1 },
+  newest: { createdAt: -1 },
+};
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
-    const { searchParams } = new URL(request.url);
-    const brand = searchParams.get('brand');
-    const search = searchParams.get('search');
-    const sort = searchParams.get('sort');
-
-    let filterQuery: any = {};
-    if (brand && brand !== 'All') {
-      filterQuery.brand = { $regex: new RegExp(`^${brand}$`, 'i') };
-    }
+    const params = request.nextUrl.searchParams;
+    const brand = searchTerm(params.get('brand'), 30);
+    const search = searchTerm(params.get('q') ?? params.get('search'));   // the UI sends ?q=
+    const filter: Record<string, unknown> = {};
+    if (brand && brand !== 'All') filter.brand = { $regex: `^${brand}$`, $options: 'i' };
     if (search) {
-      filterQuery.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { brand: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+      filter.$or = ['name', 'brand', 'description'].map((f) => ({ [f]: { $regex: search, $options: 'i' } }));
     }
 
-    let query = Product.find(filterQuery);
-    if (sort === 'price-asc') query = query.sort({ price: 1 });
-    else if (sort === 'price-desc') query = query.sort({ price: -1 });
-    else if (sort === 'rating') query = query.sort({ rating: -1 });
-    else query = query.sort({ createdAt: -1 });
+    // First run on an empty database: load the sample catalogue once.
+    if ((await Product.estimatedDocumentCount()) === 0) await Product.insertMany(initialProducts);
 
-    let products = await query.exec();
-    if (products.length === 0 && !brand && !search) {
-      try {
-        await Product.insertMany(initialProducts);
-        products = await Product.find({}).sort({ createdAt: -1 });
-      } catch (e) {}
-    }
-
+    const products = await Product.find(filter).sort(SORTS[params.get('sort') ?? ''] ?? SORTS.newest).limit(100).lean();
     return NextResponse.json({ success: true, count: products.length, data: products });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    return serverError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
+  const denied = adminGuard(request);
+  if (denied) return denied;
   try {
+    const data = productPatch(await request.json().catch(() => null), true);
     await connectToDatabase();
-    const body = await request.json();
-
-    if (!body.name || !body.brand || !body.price || !body.image) {
-      return NextResponse.json({ success: false, error: 'Name, Brand, Price and Image URL are required' }, { status: 400 });
-    }
-
-    const newProduct = new Product({
-      name: body.name,
-      brand: body.brand,
-      price: Number(body.price),
-      originalPrice: body.originalPrice ? Number(body.originalPrice) : undefined,
-      category: body.category || 'Smartphones',
-      image: body.image,
-      images: body.images || [body.image],
-      description: body.description || `${body.name} flagship mobile phone.`,
-      stock: body.stock !== undefined ? Number(body.stock) : 20,
-      specs: body.specs || {
-        display: '6.7-inch AMOLED 120Hz',
-        processor: 'Flagship Processor',
-        ram: '8GB',
-        storage: '256GB',
-        battery: '5000 mAh',
-        camera: '50MP Triple Camera',
-        os: 'Android 14',
-        network: '5G'
-      }
-    });
-
-    const saved = await newProduct.save();
+    const saved = await Product.create({ category: 'Smartphones', stock: 20, ...data });
     return NextResponse.json({ success: true, data: saved }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof ValidationError) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    return serverError(error);
   }
 }
