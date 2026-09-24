@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PhoneVault 📱
 
-## Getting Started
+**Smartphone storefront built with Next.js 16, React 19, TypeScript and MongoDB (Mongoose).**
+Formerly *TechMobile / MobileSale*.
 
-First, run the development server:
+## Features
+
+- Product catalogue with brand filter, search and sorting (price, rating, newest). The sample
+  catalogue loads automatically into an empty database.
+- Product detail modal with specs, a cart drawer with quantity controls, and checkout.
+- **Server-side checkout:** the browser sends only product IDs and quantities. The server looks up
+  prices, checks stock, and **reserves stock atomically** (`findOneAndUpdate` with
+  `stock >= qty`), so two shoppers can't buy the last phone. If any line fails, reserved stock is
+  returned.
+- Staff actions (add, edit or delete phones, view order history with customer details) require an
+  admin key (`x-admin-key` header, compared in constant time).
+- Input validation: regex-escaped search (no regex injection), whitelisted product fields (no mass
+  assignment), bounded quantities, and no internal error messages leaked to clients.
+
+## Fixes in this version
+
+| Issue | Fix |
+| --- | --- |
+| Checkout sent `{product, quantity}` but the server read `productId`, so every order was saved at ₹0 as "Mobile Phone" | Server prices orders from the catalogue; covered by tests |
+| Client-supplied prices were used when a product ID wasn't found | Unknown products are rejected |
+| Negative or huge quantities were accepted; stock wasn't checked; stock updates weren't atomic | Validated 1-5 per phone; atomic reservation with rollback |
+| Search box sent `?q=`, but the API read `?search=` | API accepts both |
+| Anyone could create, edit or delete products, re-seed the DB, create orders with any total, or list all customers' orders | Admin key required; order creation only via checkout |
+| Checkout form collected card number, expiry and CVC for a mock payment | Removed; demo uses cash on delivery |
+| User input was passed straight into `new RegExp()` | Escaped and length-capped |
+| Orders modal read fields that don't exist (`receiptId`, `totalAmount`, `email`) | Uses the real model fields |
+
+## Run it
 
 ```bash
+cp .env.example .env.local     # set MONGODB_URI and ADMIN_API_KEY
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm test                       # validation, pricing and search-escaping tests
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
