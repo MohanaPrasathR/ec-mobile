@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getAdminKey, setAdminKey } from '@/lib/adminKey';
 
 type OrderType = {
   _id: string;
   customerName: string;
-  email: string;
-  address?: string;
-  receiptId: string;
-  totalAmount: number;
+  customerEmail: string;
+  shippingAddress?: { address?: string };
+  orderNumber: string;
+  total: number;
   status: string;
   createdAt: string;
   items: {
@@ -29,22 +30,27 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [adminKey, setKey] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      fetchOrders();
+      const saved = getAdminKey();
+      setKey(saved);
+      if (saved) fetchOrders(saved);
     }
   }, [isOpen]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (key = adminKey) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/orders');
+      const res = await fetch('/api/orders', { headers: { 'x-admin-key': key } });
       const data = await res.json();
       if (data.success) {
         setOrders(data.data);
+        setAdminKey(key);
       } else {
+        if (res.status === 401) setAdminKey('');
         setError(data.error || 'Could not fetch orders from database.');
       }
     } catch (err: unknown) {
@@ -62,9 +68,16 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
         <button className="modal-close" onClick={onClose}>×</button>
         <div className="orders-header">
           <h3>📦 MongoDB Orders History</h3>
-          <button className="btn-icon" onClick={fetchOrders} title="Refresh orders">🔄 Refresh</button>
+          <button className="btn-icon" onClick={() => fetchOrders()} title="Refresh orders">🔄 Refresh</button>
         </div>
-        <p className="subtitle">Real-time order records stored inside MongoDB `Order` collection.</p>
+        <p className="subtitle">Store staff only: order history includes customer contact details.</p>
+        <form className="checkout-form" onSubmit={(e) => { e.preventDefault(); fetchOrders(); }}>
+          <div className="form-group">
+            <label htmlFor="orders-admin-key">Admin key</label>
+            <input id="orders-admin-key" type="password" autoComplete="off" value={adminKey}
+              onChange={(e) => setKey(e.target.value)} placeholder="Set by ADMIN_API_KEY on the server" />
+          </div>
+        </form>
 
         {loading ? (
           <div className="loading-spinner">Loading orders from MongoDB...</div>
@@ -81,14 +94,14 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
               <div key={order._id} className="order-card">
                 <div className="order-card-header">
                   <div>
-                    <span className="order-receipt">{order.receiptId}</span>
+                    <span className="order-receipt">{order.orderNumber}</span>
                     <span className="order-date">{new Date(order.createdAt).toLocaleString()}</span>
                   </div>
                   <span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span>
                 </div>
 
                 <div className="order-customer">
-                  <strong>Customer:</strong> {order.customerName} ({order.email})
+                  <strong>Customer:</strong> {order.customerName} ({order.customerEmail})
                 </div>
 
                 <div className="order-items-grid">
@@ -105,7 +118,7 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
 
                 <div className="order-card-footer">
                   <span>Total Amount Paid:</span>
-                  <strong className="order-total-price">${order.totalAmount.toLocaleString()}</strong>
+                  <strong className="order-total-price">${order.total.toLocaleString()}</strong>
                 </div>
               </div>
             ))}

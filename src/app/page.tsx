@@ -9,7 +9,6 @@ import OrdersModal from './components/OrdersModal';
 export default function Home() {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [seeding, setSeeding] = useState(false);
   const [cart, setCart] = useState<{ product: ProductType; quantity: number }[]>([]);
   
   // Modals & Drawers
@@ -28,10 +27,7 @@ export default function Home() {
   const [checkoutData, setCheckoutData] = useState({
     name: '',
     email: '',
-    address: '123 Tech Street, Silicon Valley',
-    cardNumber: '',
-    expiry: '',
-    cvc: ''
+    address: ''
   });
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -65,24 +61,6 @@ export default function Home() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
-
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    try {
-      const res = await fetch('/api/seed', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        showToast(data.message, 'success');
-        fetchProducts();
-      } else {
-        showToast(data.error || 'Failed to seed database', 'error');
-      }
-    } catch (err: unknown) {
-      showToast(err instanceof Error ? err.message : 'Seeding error', 'error');
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   const addToCart = (product: ProductType) => {
     setCart((prev) => {
@@ -126,9 +104,9 @@ export default function Home() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // only IDs and quantities are sent: the server looks up prices and checks stock
         body: JSON.stringify({
-          amount: cartTotal,
-          items: cart,
+          items: cart.map((item) => ({ productId: item.product._id, quantity: item.quantity })),
           name: checkoutData.name,
           email: checkoutData.email,
           address: checkoutData.address
@@ -139,7 +117,8 @@ export default function Home() {
       if (data.success) {
         setCart([]);
         setIsCheckoutOpen(false);
-        showToast(`🎉 Order Placed! MongoDB Receipt: ${data.receiptId}`, 'success');
+        showToast(`🎉 Order placed! Your order number is ${data.orderNumber}`, 'success');
+        fetchProducts(); // refresh stock counts
       } else {
         showToast(data.error || 'Payment failed', 'error');
       }
@@ -165,7 +144,7 @@ export default function Home() {
       <header>
         <div className="brand-logo" onClick={() => { setSelectedBrand('All'); setSearchQuery(''); }}>
           <span className="logo-icon">📱</span>
-          <span className="brand">MobileSale <small className="db-badge">MongoDB</small></span>
+          <span className="brand">PhoneVault <small className="db-badge">MongoDB</small></span>
         </div>
 
         <div className="header-actions">
@@ -190,11 +169,6 @@ export default function Home() {
           <h1>Next-Gen Smartphones Powered by MongoDB</h1>
           <p>Full-stack e-commerce application with dynamic MongoDB collections, search, specs inspection & order history.</p>
 
-          <div className="hero-cta">
-            <button className="btn-seed" onClick={handleSeedDatabase} disabled={seeding}>
-              {seeding ? '🌱 Seeding MongoDB...' : '⚡ Seed Sample MongoDB Products'}
-            </button>
-          </div>
         </div>
 
         {/* Filter & Search Toolbar */}
@@ -244,11 +218,8 @@ export default function Home() {
           </div>
         ) : products.length === 0 ? (
           <div className="empty-db-banner">
-            <h3>No Products Found in MongoDB</h3>
-            <p>Your database currently has 0 matching products.</p>
-            <button className="add-to-cart" onClick={handleSeedDatabase} disabled={seeding}>
-              {seeding ? 'Seeding Database...' : '🌱 Seed Database with Sample Phones'}
-            </button>
+            <h3>No phones match your search</h3>
+            <p>Try a different brand or search term.</p>
           </div>
         ) : (
           <div className="products-grid">
@@ -324,7 +295,7 @@ export default function Home() {
           <div className="modal-content checkout-modal" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setIsCheckoutOpen(false)}>×</button>
             <h3>Complete Your Purchase</h3>
-            <p className="subtitle">Orders are saved to MongoDB upon payment simulation.</p>
+            <p className="subtitle">Prices and stock are confirmed on the server when you place the order.</p>
 
             <form onSubmit={handleCheckoutSubmit} className="checkout-form">
               <div className="form-group">
@@ -350,48 +321,18 @@ export default function Home() {
               </div>
 
               <div className="form-group">
-                <label>Shipping Address</label>
+                <label>Shipping Address *</label>
                 <input 
                   type="text" 
-                  placeholder="123 Tech St, City, Country" 
+                  required
+                  minLength={10}
+                  placeholder="Flat, street, city, PIN code" 
                   value={checkoutData.address}
                   onChange={(e) => setCheckoutData({ ...checkoutData, address: e.target.value })}
                 />
               </div>
 
-              <div className="form-group">
-                <label>Card Number (Mock)</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="4532 •••• •••• 8892" 
-                  value={checkoutData.cardNumber}
-                  onChange={(e) => setCheckoutData({ ...checkoutData, cardNumber: e.target.value })}
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Expiry</label>
-                  <input 
-                    type="text" 
-                    placeholder="12/28" 
-                    required 
-                    value={checkoutData.expiry}
-                    onChange={(e) => setCheckoutData({ ...checkoutData, expiry: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>CVC</label>
-                  <input 
-                    type="text" 
-                    placeholder="123" 
-                    required 
-                    value={checkoutData.cvc}
-                    onChange={(e) => setCheckoutData({ ...checkoutData, cvc: e.target.value })}
-                  />
-                </div>
-              </div>
+              <p className="subtitle">Payment: cash on delivery. This is a demo store, so no card details are collected.</p>
 
               <div className="checkout-summary">
                 <span>Order Total:</span>
@@ -399,7 +340,7 @@ export default function Home() {
               </div>
 
               <button type="submit" className="add-to-cart btn-large" disabled={checkoutLoading}>
-                {checkoutLoading ? 'Saving Order to MongoDB...' : `Pay $${cartTotal.toLocaleString()}`}
+                {checkoutLoading ? 'Placing order…' : `Place order · $${cartTotal.toLocaleString()}`}
               </button>
             </form>
           </div>
@@ -431,7 +372,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer>
-        <p>© {new Date().getFullYear()} MobileSale • MongoDB Powered E-Commerce Platform</p>
+        <p>© {new Date().getFullYear()} PhoneVault · Next.js + MongoDB</p>
       </footer>
     </div>
   );

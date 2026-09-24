@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getAdminKey, setAdminKey } from '@/lib/adminKey';
 import { ProductType } from './ProductCard';
 
 interface AddProductModalProps {
@@ -26,6 +27,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [adminKey, setKey] = useState(() => (typeof window === 'undefined' ? '' : getAdminKey()));
 
   if (!isOpen) return null;
 
@@ -37,7 +39,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
         body: JSON.stringify({
           name: form.name,
           brand: form.brand,
@@ -57,6 +59,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 
       const data = await res.json();
       if (data.success) {
+        setAdminKey(adminKey);
         onProductAdded(data.data);
         onClose();
         setForm({
@@ -86,12 +89,17 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content add-modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>×</button>
-        <h3>Add New Smartphone to MongoDB</h3>
-        <p className="subtitle">Fill out details to save a new product document directly to your MongoDB database.</p>
+        <h3>Add a new phone</h3>
+        <p className="subtitle">Store staff only. Requires the admin key configured on the server.</p>
 
         {error && <div className="error-banner">{error}</div>}
 
         <form onSubmit={handleSubmit} className="add-product-form">
+          <div className="form-group">
+            <label htmlFor="add-admin-key">Admin key *</label>
+            <input id="add-admin-key" type="password" required autoComplete="off" value={adminKey}
+              onChange={(e) => setKey(e.target.value)} />
+          </div>
           <div className="form-row">
             <div className="form-group">
               <label>Phone Name *</label>
