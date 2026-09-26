@@ -75,24 +75,3 @@ export default function ProductModal({ product, onClose, onAddToCart }: ProductM
     </div>
   );
 }
-
-// Feature increment: build #13 for ProductModal
-
-// Refactored logic pass: rev 49
-
-// Edge-case safeguard audit: check 85
-
-// Visual styling alignment: pass 121
-/**
- * Verified interface specs for ProductModal (Iteration 193)
- */
-
-// Performance optimization checkpoint 229
-
-// Feature increment: build #265 for ProductModal
-
-// Refactored logic pass: rev 301
-
-// Edge-case safeguard audit: check 337
-
-// Visual styling alignment: pass 373

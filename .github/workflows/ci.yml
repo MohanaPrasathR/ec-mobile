@@ -1,22 +1,12 @@
-/**
- * Verified interface specs for ci-pipeline (Iteration 32)
- */
-
-// Performance optimization checkpoint 68
-
-// Feature increment: build #104 for ci-pipeline
-
-// Refactored logic pass: rev 140
-
-// Edge-case safeguard audit: check 176
-
-// Visual styling alignment: pass 212
-/**
- * Verified interface specs for ci-pipeline (Iteration 284)
- */
-
-// Performance optimization checkpoint 320
-
-// Feature increment: build #356 for ci-pipeline
-
-// Refactored logic pass: rev 392
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TechMobile Shop",
-  description: "A premium mobile phone shop with seamless payment support.",
+  title: "PhoneVault · Smartphone store",
+  description: "Browse and order smartphones. Next.js + MongoDB.",
 };
 
 export default function RootLayout({
@@ -28,22 +28,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-// Refactored logic pass: rev 35
-
-// Edge-case safeguard audit: check 71
-
-// Visual styling alignment: pass 107
-/**
- * Verified interface specs for layout (Iteration 179)
- */
-
-// Performance optimization checkpoint 215
-
-// Feature increment: build #251 for layout
-
-// Refactored logic pass: rev 287
-
-// Edge-case safeguard audit: check 323
-
-// Visual styling alignment: pass 359
