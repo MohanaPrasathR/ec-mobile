@@ -1,6 +1,7 @@
 'use client';
 
-import { ProductType } from './ProductCard';
+import { AnimatePresence, motion } from 'framer-motion';
+import { EASE, ProductType, usd } from './ProductCard';
 
 interface ProductModalProps {
   product: ProductType | null;
@@ -9,69 +10,95 @@ interface ProductModalProps {
 }
 
 export default function ProductModal({ product, onClose, onAddToCart }: ProductModalProps) {
-  if (!product) return null;
+  const specs = product
+    ? [
+        { label: 'Storage', value: product.specs?.storage },
+        { label: 'Memory', value: product.specs?.ram },
+        { label: 'Camera', value: product.specs?.camera },
+        { label: 'Battery', value: product.specs?.battery },
+        { label: 'Processor', value: product.specs?.processor },
+        { label: 'Software', value: product.specs?.os },
+        { label: 'Display', value: product.specs?.display, full: true },
+      ].filter((s) => s.value)
+    : [];
+  const soldOut = !!product && product.stock !== undefined && product.stock <= 0;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content product-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>×</button>
-        
-        <div className="product-modal-grid">
-          <div className="modal-image-col">
-            <img src={product.image} alt={product.name} className="modal-product-img" />
-          </div>
+    <AnimatePresence>
+      {product && (
+        <motion.div className="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+          <motion.div
+            className="sheet wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={product.name}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 30, opacity: 0 }}
+            transition={{ duration: 0.45, ease: EASE }}
+          >
+            <button className="icon-btn close" onClick={onClose} aria-label="Close">✕</button>
 
-          <div className="modal-details-col">
-            <div className="modal-header-info">
-              <span className="brand-tag">{product.brand}</span>
-              <h2>{product.name}</h2>
-              <div className="modal-price">${product.price.toLocaleString()}</div>
+            <div className="detail-media">
+              <motion.img layoutId={`img-${product._id}`} src={product.image} alt={product.name} transition={{ duration: 0.55, ease: EASE }} />
             </div>
 
-            <p className="modal-description">
-              {product.description || 'Experience cutting-edge smartphone technology with premium design and high-performance camera systems.'}
-            </p>
+            <motion.div
+              className="detail-body"
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } } }}
+            >
+              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                <div className="card-brand" style={{ marginBottom: 8 }}>
+                  <span>{product.brand}</span>
+                  {product.rating ? <span>★ {product.rating.toFixed(1)}{product.reviewCount ? ` · ${product.reviewCount} reviews` : ''}</span> : null}
+                </div>
+                <h2>{product.name}</h2>
+              </motion.div>
 
-            <div className="specs-section">
-              <h4>Hardware Specifications</h4>
-              <div className="specs-grid">
-                <div className="spec-box">
-                  <span className="spec-label">RAM</span>
-                  <span className="spec-val">{product.specs?.ram || '8GB'}</span>
-                </div>
-                <div className="spec-box">
-                  <span className="spec-label">Storage</span>
-                  <span className="spec-val">{product.specs?.storage || '128GB'}</span>
-                </div>
-                <div className="spec-box">
-                  <span className="spec-label">Camera</span>
-                  <span className="spec-val">{product.specs?.camera || '50 MP'}</span>
-                </div>
-                <div className="spec-box">
-                  <span className="spec-label">Battery</span>
-                  <span className="spec-val">{product.specs?.battery || '4500 mAh'}</span>
-                </div>
-                <div className="spec-box full-width">
-                  <span className="spec-label">Display</span>
-                  <span className="spec-val">{product.specs?.display || '6.5" OLED 120Hz'}</span>
-                </div>
-              </div>
-            </div>
+              {product.description && (
+                <motion.p className="desc" variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                  {product.description}
+                </motion.p>
+              )}
 
-            <div className="modal-action-bar">
-              <button 
-                className="add-to-cart btn-large" 
-                onClick={() => {
-                  onAddToCart(product);
-                  onClose();
-                }}
-              >
-                Add to Cart • ${product.price}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+              {specs.length > 0 && (
+                <motion.div className="specs" variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                  {specs.map((s) => (
+                    <div key={s.label} className={`spec ${s.full ? 'full' : ''}`}>
+                      <small>{s.label}</small>
+                      <span>{s.value}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+
+              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }} style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div className="price" style={{ fontSize: 28 }}>
+                  {usd(product.price)}
+                  {product.originalPrice && product.originalPrice > product.price && <s>{usd(product.originalPrice)}</s>}
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  className="btn btn-blue btn-block"
+                  disabled={soldOut}
+                  onClick={() => {
+                    onAddToCart(product);
+                    onClose();
+                  }}
+                >
+                  {soldOut ? 'Sold out' : 'Add to bag'}
+                </motion.button>
+                {!soldOut && product.stock !== undefined && (
+                  <span className="fine">{product.stock <= 5 ? `Only ${product.stock} left in stock.` : 'In stock.'} Cash on delivery.</span>
+                )}
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

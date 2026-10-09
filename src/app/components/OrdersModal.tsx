@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { getAdminKey, setAdminKey } from '@/lib/adminKey';
+import { EASE, usd } from './ProductCard';
 
 type OrderType = {
   _id: string;
@@ -60,71 +62,69 @@ export default function OrdersModal({ isOpen, onClose }: OrdersModalProps) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content orders-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>×</button>
-        <div className="orders-header">
-          <h3>📦 MongoDB Orders History</h3>
-          <button className="btn-icon" onClick={() => fetchOrders()} title="Refresh orders">🔄 Refresh</button>
-        </div>
-        <p className="subtitle">Store staff only: order history includes customer contact details.</p>
-        <form className="checkout-form" onSubmit={(e) => { e.preventDefault(); fetchOrders(); }}>
-          <div className="form-group">
-            <label htmlFor="orders-admin-key">Admin key</label>
-            <input id="orders-admin-key" type="password" autoComplete="off" value={adminKey}
-              onChange={(e) => setKey(e.target.value)} placeholder="Set by ADMIN_API_KEY on the server" />
-          </div>
-        </form>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div className="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+          <motion.div
+            className="sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Orders"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 30, opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+          >
+            <button className="icon-btn close" onClick={onClose} aria-label="Close">✕</button>
+            <h3>Orders</h3>
+            <p className="sub">Store staff only: order history includes customer contact details.</p>
 
-        {loading ? (
-          <div className="loading-spinner">Loading orders from MongoDB...</div>
-        ) : error ? (
-          <div className="error-banner">{error}</div>
-        ) : orders.length === 0 ? (
-          <div className="empty-state">
-            <p>No orders recorded in MongoDB yet.</p>
-            <p className="small">Add products to cart and checkout to create your first order!</p>
-          </div>
-        ) : (
-          <div className="orders-list">
-            {orders.map((order) => (
-              <div key={order._id} className="order-card">
-                <div className="order-card-header">
-                  <div>
-                    <span className="order-receipt">{order.orderNumber}</span>
-                    <span className="order-date">{new Date(order.createdAt).toLocaleString()}</span>
-                  </div>
-                  <span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span>
-                </div>
-
-                <div className="order-customer">
-                  <strong>Customer:</strong> {order.customerName} ({order.customerEmail})
-                </div>
-
-                <div className="order-items-grid">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="order-item-row">
-                      <img src={item.image} alt={item.name} className="order-item-thumb" />
-                      <div className="order-item-info">
-                        <span className="order-item-name">{item.name}</span>
-                        <span className="order-item-qty">Qty: {item.quantity} × ${item.price}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="order-card-footer">
-                  <span>Total Amount Paid:</span>
-                  <strong className="order-total-price">${order.total.toLocaleString()}</strong>
+            <form className="form" onSubmit={(e) => { e.preventDefault(); fetchOrders(); }}>
+              <div className="field">
+                <label htmlFor="orders-admin-key">Admin key</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input id="orders-admin-key" type="password" autoComplete="off" value={adminKey} onChange={(e) => setKey(e.target.value)} placeholder="Set by ADMIN_API_KEY on the server" />
+                  <button type="submit" className="btn btn-dark" disabled={loading}>{loading ? 'Loading…' : 'Load'}</button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+            </form>
+
+            {error ? (
+              <div className="alert" role="alert" style={{ marginTop: 16 }}>{error}</div>
+            ) : !loading && orders.length === 0 ? (
+              <p className="sub" style={{ marginTop: 20 }}>No orders to show yet.</p>
+            ) : (
+              <div className="orders">
+                {orders.map((order, i) => (
+                  <motion.div key={order._id} className="order" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.04 }}>
+                    <div className="order-top">
+                      <div>
+                        <b>{order.orderNumber}</b>
+                        <small>{new Date(order.createdAt).toLocaleString()}</small>
+                      </div>
+                      <span className="status">{order.status}</span>
+                    </div>
+                    <div className="order-who">{order.customerName} · {order.customerEmail}</div>
+                    {order.items.map((item, idx) => (
+                      <div key={idx} className="order-line">
+                        <img src={item.image} alt="" />
+                        <span>{item.name}</span>
+                        <span>{item.quantity} × {usd(item.price)}</span>
+                      </div>
+                    ))}
+                    <div className="order-sum">
+                      <span>Total</span>
+                      <span>{usd(order.total)}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

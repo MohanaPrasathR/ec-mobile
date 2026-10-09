@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { getAdminKey, setAdminKey } from '@/lib/adminKey';
-import { ProductType } from './ProductCard';
+import { EASE, ProductType } from './ProductCard';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -10,26 +11,27 @@ interface AddProductModalProps {
   onProductAdded: (newProduct: ProductType) => void;
 }
 
-export default function AddProductModal({ isOpen, onClose, onProductAdded }: AddProductModalProps) {
-  const [form, setForm] = useState({
-    name: '',
-    brand: 'Apple',
-    price: '',
-    image: '',
-    description: '',
-    ram: '12GB',
-    storage: '256GB',
-    battery: '5000 mAh',
-    camera: '50 MP Triple Camera',
-    display: '6.7" OLED 120Hz',
-    stock: '10'
-  });
+const BRANDS = ['Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Nothing', 'Sony'];
 
+const EMPTY_FORM = {
+  name: '',
+  brand: 'Apple',
+  price: '',
+  image: '',
+  description: '',
+  ram: '12GB',
+  storage: '256GB',
+  battery: '5000 mAh',
+  camera: '50 MP Triple Camera',
+  display: '6.7" OLED 120Hz',
+  stock: '10'
+};
+
+export default function AddProductModal({ isOpen, onClose, onProductAdded }: AddProductModalProps) {
+  const [form, setForm] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [adminKey, setKey] = useState(() => (typeof window === 'undefined' ? '' : getAdminKey()));
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,19 +64,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         setAdminKey(adminKey);
         onProductAdded(data.data);
         onClose();
-        setForm({
-          name: '',
-          brand: 'Apple',
-          price: '',
-          image: '',
-          description: '',
-          ram: '12GB',
-          storage: '256GB',
-          battery: '5000 mAh',
-          camera: '50 MP Triple Camera',
-          display: '6.7" OLED 120Hz',
-          stock: '10'
-        });
+        setForm(EMPTY_FORM);
       } else {
         setError(data.error || 'Failed to create product');
       }
@@ -85,127 +75,92 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     }
   };
 
+  const field = (key: keyof typeof EMPTY_FORM) => ({
+    value: form[key],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm({ ...form, [key]: e.target.value }),
+  });
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content add-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>×</button>
-        <h3>Add a new phone</h3>
-        <p className="subtitle">Store staff only. Requires the admin key configured on the server.</p>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div className="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+          <motion.div
+            className="sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add a new phone"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 30, opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+          >
+            <button className="icon-btn close" onClick={onClose} aria-label="Close">✕</button>
+            <h3>Add a new phone</h3>
+            <p className="sub">Store staff only. Requires the admin key configured on the server.</p>
 
-        {error && <div className="error-banner">{error}</div>}
+            <form onSubmit={handleSubmit} className="form">
+              {error && <div className="alert" role="alert">{error}</div>}
+              <div className="field">
+                <label htmlFor="add-admin-key">Admin key</label>
+                <input id="add-admin-key" type="password" required autoComplete="off" value={adminKey} onChange={(e) => setKey(e.target.value)} />
+              </div>
+              <div className="row">
+                <div className="field">
+                  <label htmlFor="add-name">Phone name</label>
+                  <input id="add-name" type="text" placeholder="Galaxy S25 Ultra" required {...field('name')} />
+                </div>
+                <div className="field">
+                  <label htmlFor="add-brand">Brand</label>
+                  <select id="add-brand" {...field('brand')}>
+                    {BRANDS.map((b) => <option key={b}>{b}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="row">
+                <div className="field">
+                  <label htmlFor="add-price">Price (USD)</label>
+                  <input id="add-price" type="number" min="1" placeholder="999" required {...field('price')} />
+                </div>
+                <div className="field">
+                  <label htmlFor="add-stock">Initial stock</label>
+                  <input id="add-stock" type="number" min="0" {...field('stock')} />
+                </div>
+              </div>
+              <div className="field">
+                <label htmlFor="add-image">Image URL</label>
+                <input id="add-image" type="url" placeholder="https://images.unsplash.com/..." {...field('image')} />
+              </div>
+              <div className="field">
+                <label htmlFor="add-desc">Description</label>
+                <textarea id="add-desc" placeholder="Key features, processor, design notes" rows={3} {...field('description')} />
+              </div>
 
-        <form onSubmit={handleSubmit} className="add-product-form">
-          <div className="form-group">
-            <label htmlFor="add-admin-key">Admin key *</label>
-            <input id="add-admin-key" type="password" required autoComplete="off" value={adminKey}
-              onChange={(e) => setKey(e.target.value)} />
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Phone Name *</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Galaxy S25 Ultra" 
-                required 
-                value={form.name} 
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Brand *</label>
-              <select 
-                value={form.brand} 
-                onChange={(e) => setForm({ ...form, brand: e.target.value })}
-              >
-                <option value="Apple">Apple</option>
-                <option value="Samsung">Samsung</option>
-                <option value="Google">Google</option>
-                <option value="OnePlus">OnePlus</option>
-                <option value="Xiaomi">Xiaomi</option>
-                <option value="Nothing">Nothing</option>
-                <option value="Sony">Sony</option>
-              </select>
-            </div>
-          </div>
+              <div className="form-title">Hardware</div>
+              <div className="row three">
+                <div className="field">
+                  <label htmlFor="add-ram">RAM</label>
+                  <input id="add-ram" type="text" {...field('ram')} />
+                </div>
+                <div className="field">
+                  <label htmlFor="add-storage">Storage</label>
+                  <input id="add-storage" type="text" {...field('storage')} />
+                </div>
+                <div className="field">
+                  <label htmlFor="add-battery">Battery</label>
+                  <input id="add-battery" type="text" {...field('battery')} />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Price ($ USD) *</label>
-              <input 
-                type="number" 
-                placeholder="e.g. 999" 
-                required 
-                value={form.price} 
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Initial Stock</label>
-              <input 
-                type="number" 
-                placeholder="10" 
-                value={form.stock} 
-                onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Image URL</label>
-            <input 
-              type="url" 
-              placeholder="https://images.unsplash.com/..." 
-              value={form.image} 
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <textarea 
-              placeholder="Key features, processor, design notes..." 
-              rows={3} 
-              value={form.description} 
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </div>
-
-          <div className="form-section-title">Hardware Specifications</div>
-          <div className="form-row three-col">
-            <div className="form-group">
-              <label>RAM</label>
-              <input 
-                type="text" 
-                value={form.ram} 
-                onChange={(e) => setForm({ ...form, ram: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Storage</label>
-              <input 
-                type="text" 
-                value={form.storage} 
-                onChange={(e) => setForm({ ...form, storage: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Battery</label>
-              <input 
-                type="text" 
-                value={form.battery} 
-                onChange={(e) => setForm({ ...form, battery: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="add-to-cart" disabled={loading}>
-              {loading ? 'Saving to MongoDB...' : 'Save Product to DB'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+              <div className="actions">
+                <button type="button" className="btn btn-line" onClick={onClose}>Cancel</button>
+                <button type="submit" className="btn btn-blue" disabled={loading}>{loading ? 'Saving…' : 'Save phone'}</button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
