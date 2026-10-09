@@ -5,11 +5,13 @@ import { serverError } from '@/lib/admin';
 import { CatalogProduct, parseCheckout, priceOrder, ValidationError } from '@/lib/validation';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
+import * as demo from '@/lib/demoStore';
 
 export async function POST(req: NextRequest) {
   const reserved: { productId: string; quantity: number }[] = [];
   try {
     const input = parseCheckout(await req.json().catch(() => null));
+    if (demo.isDemoMode()) return NextResponse.json({ success: true, ...demo.placeOrder(input) }, { status: 201 });
     await connectToDatabase();
 
     const docs = await Product.find({ _id: { $in: input.items.map((i) => i.productId) } }).lean();

@@ -3,6 +3,7 @@ import connectToDatabase from '@/lib/mongodb';
 import { adminGuard, serverError } from '@/lib/admin';
 import { productPatch, searchTerm, ValidationError } from '@/lib/validation';
 import Product from '@/models/Product';
+import * as demo from '@/lib/demoStore';
 import initialProducts from '@/data/initial-products.json';
 
 const SORTS: Record<string, Record<string, 1 | -1>> = {
@@ -14,10 +15,14 @@ const SORTS: Record<string, Record<string, 1 | -1>> = {
 
 export async function GET(request: NextRequest) {
   try {
-    await connectToDatabase();
     const params = request.nextUrl.searchParams;
     const brand = searchTerm(params.get('brand'), 30);
     const search = searchTerm(params.get('q') ?? params.get('search'));   // the UI sends ?q=
+    if (demo.isDemoMode()) {
+      const data = demo.listProducts({ brand, search, sort: params.get('sort') });
+      return NextResponse.json({ success: true, count: data.length, data, demo: true });
+    }
+    await connectToDatabase();
     const filter: Record<string, unknown> = {};
     if (brand && brand !== 'All') filter.brand = { $regex: `^${brand}$`, $options: 'i' };
     if (search) {
@@ -39,6 +44,7 @@ export async function POST(request: NextRequest) {
   if (denied) return denied;
   try {
     const data = productPatch(await request.json().catch(() => null), true);
+    if (demo.isDemoMode()) return NextResponse.json({ success: true, data: demo.createProduct(data) }, { status: 201 });
     await connectToDatabase();
     const saved = await Product.create({ category: 'Smartphones', stock: 20, ...data });
     return NextResponse.json({ success: true, data: saved }, { status: 201 });

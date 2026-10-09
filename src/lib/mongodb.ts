@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ec-mobile';
+// Callers check demo mode first, so this runs only when MONGODB_URI is set.
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 let cached = (global as any).mongoose;
 
